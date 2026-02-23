@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: maistorly_db
+    environment:
+      POSTGRES_DB: maistorly
+      POSTGRES_USER: maistorly_user
+      POSTGRES_PASSWORD: maistorly_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - maistorly_pgdata:/var/lib/postgresql/data
+
+volumes:
+  maistorly_pgdata:
