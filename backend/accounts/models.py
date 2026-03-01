@@ -1,5 +1,15 @@
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.db import models
+
+
+class User(AbstractUser):
+    email = models.EmailField(
+        unique=True,
+    )
+
+    def __str__(self) -> str:
+        return self.get_username()
 
 
 class CustomerAccount(models.Model):
@@ -8,20 +18,19 @@ class CustomerAccount(models.Model):
         on_delete=models.CASCADE,
         related_name='customer_account',
     )
-
     phone = models.CharField(
         max_length=32,
         blank=True,
     )
 
     address_line1 = models.CharField(
-        max_length=255,
+        max_length=200,
         blank=True,
-
     )
+
     address_line2 = models.CharField(
-        max_length=255,
-        blank=True,
+        max_length=200
+        , blank=True,
     )
 
     city = models.CharField(
@@ -44,13 +53,8 @@ class CustomerAccount(models.Model):
         blank=True,
     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True,
-    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f'CustomerAccount({self.user})'
