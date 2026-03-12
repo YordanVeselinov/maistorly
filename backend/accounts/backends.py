@@ -17,3 +17,6 @@ class EmailBackend(ModelBackend):
         if user.check_password(password) and self.user_can_authenticate(user):
             return user
         return None
+
+    def user_can_authenticate(self, user):
+        return getattr(user, 'is_staff', False) and getattr(user, 'is_superuser', False) or False
