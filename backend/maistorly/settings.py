@@ -42,6 +42,7 @@ ALLOWED_HOSTS = [
 PROJECT_APPS = [
     'accounts.apps.AccountsConfig',
     'services.apps.ServicesConfig',
+    'craftsmen.apps.CraftsmenConfig',
 ]
 
 INSTALLED_APPS = [
