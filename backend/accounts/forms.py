@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
-from .models import User
+from .models import CustomerAccount, User
 
 
 class RegisterForm(UserCreationForm):
@@ -31,3 +31,13 @@ class EmailAuthenticationForm(AuthenticationForm):
         widget=forms.EmailInput(
             attrs={"class": "form-control", "placeholder": "Enter your email"})
     )
+
+
+class CustomerAccountForm(forms.ModelForm):
+    class Meta:
+        model = CustomerAccount
+        fields = (
+            "phone",
+            "city",
+            "country",
+        )
