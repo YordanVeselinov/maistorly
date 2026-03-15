@@ -19,4 +19,4 @@ class EmailBackend(ModelBackend):
         return None
 
     def user_can_authenticate(self, user):
-        return getattr(user, 'is_staff', False) and getattr(user, 'is_superuser', False) or False
+        return getattr(user, 'is_active', False)
