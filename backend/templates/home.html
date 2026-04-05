@@ -1,8 +1,37 @@
 {% extends "base.html" %}
+{% load maistorly_tags %}
 
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h1>Welcome to Maistorly</h1>
-<p>This is a public page.</p>
+<section class="py-4 py-lg-5">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <span class="badge rounded-pill text-bg-light border mb-3">Home Repair Marketplace</span>
+            <h1 class="display-5 fw-bold mb-3">Find reliable craftsmen or post your next home repair job.</h1>
+            <p class="lead text-secondary mb-4">Maistorly connects customers with skilled local professionals for repairs, maintenance, and specialist home services.</p>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary" href="{% url 'jobs:job_list' %}">Browse Jobs</a>
+                <a class="btn btn-outline-secondary" href="{% url 'craftsmen:craftsman_list' %}">Browse Craftsmen</a>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-3">Quick access</h2>
+                    <div class="d-grid gap-2">
+                        {% if request.user.is_authenticated %}
+                        <a class="btn btn-outline-primary" href="{% url 'jobs:job_create' %}">Create Job Request</a>
+                        <a class="btn btn-outline-primary" href="{% url 'jobs:my_jobs' %}">Manage My Jobs</a>
+                        <a class="btn btn-outline-primary" href="{% url 'accounts:profile' %}">Open Profile</a>
+                        {% else %}
+                        <a class="btn btn-outline-primary" href="{% url 'accounts:register' %}">Create Account</a>
+                        <a class="btn btn-outline-primary" href="{% url 'accounts:login' %}">Login</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block content %}
+<section class="py-5 text-center">
+    <div class="mx-auto" style="max-width: 40rem;">
+        <p class="text-uppercase text-secondary fw-semibold mb-2">404 Error</p>
+        <h1 class="display-5 fw-bold mb-3">The page you requested could not be found.</h1>
+        <p class="lead text-secondary mb-4">The link may be outdated or the page may have been moved.</p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a class="btn btn-primary" href="{% url 'home' %}">Back Home</a>
+            <a class="btn btn-outline-secondary" href="{% url 'jobs:job_list' %}">Browse Jobs</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

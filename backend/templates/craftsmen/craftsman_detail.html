@@ -1,29 +1,46 @@
 {% extends "base.html" %}
+{% load maistorly_tags %}
 
 {% block title %}{{ craftsman }}{% endblock %}
 
 {% block content %}
-<h1>{{ craftsman }}</h1>
-<p>Username: {{ craftsman.user.username }}</p>
-<p>City: {{ craftsman.city|default:"-" }}</p>
-<p>Country: {{ craftsman.country|default:"-" }}</p>
-<p>Available: {% if craftsman.is_available %}Yes{% else %}No{% endif %}</p>
-<p>Bio: {{ craftsman.bio|default:"-" }}</p>
-<p>Phone: {{ craftsman.phone|default:"-" }}</p>
-<p>
-    Skills:
-    {% for skill in craftsman.skills.all %}
-        {{ skill.name }}{% if not forloop.last %}, {% endif %}
-    {% empty %}
-        -
-    {% endfor %}
-</p>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
+            <div>
+                <h1 class="mb-1">{{ craftsman }}</h1>
+                <p class="text-secondary mb-0">Username: {{ craftsman.user.username }}</p>
+            </div>
+            <div>
+                <span class="badge rounded-pill {{ craftsman.is_available|boolean_badge_class }}">
+                    {% if craftsman.is_available %}Available{% else %}Unavailable{% endif %}
+                </span>
+            </div>
+        </div>
 
-<p><a href="{% url 'reviews:craftsman_reviews' craftsman.pk %}">View reviews</a></p>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4"><strong>City:</strong> {{ craftsman.city|default:"-" }}</div>
+            <div class="col-md-4"><strong>Country:</strong> {{ craftsman.country|default:"-" }}</div>
+            <div class="col-md-4"><strong>Phone:</strong> {{ craftsman.phone|default:"-" }}</div>
+        </div>
 
-{% if request.user.is_authenticated and request.user == craftsman.user %}
-<p><a href="{% url 'craftsmen:profile_edit' request.user.pk %}">Edit my craftsman profile</a></p>
-{% endif %}
+        <p class="mb-4"><strong>Bio:</strong><br>{{ craftsman.bio|default:"-" }}</p>
+        <p class="mb-4">
+            <strong>Skills:</strong><br>
+            {% for skill in craftsman.skills.all %}
+            <span class="badge text-bg-light border">{{ skill.name }}</span>
+            {% empty %}
+            -
+            {% endfor %}
+        </p>
 
-<p><a href="{% url 'craftsmen:craftsman_list' %}">Back to craftsmen</a></p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" href="{% url 'reviews:craftsman_reviews' craftsman.pk %}">View reviews</a>
+            {% if request.user.is_authenticated and request.user == craftsman.user %}
+            <a class="btn btn-primary" href="{% url 'craftsmen:profile_edit' request.user.pk %}">Edit my craftsman profile</a>
+            {% endif %}
+            <a class="btn btn-outline-secondary" href="{% url 'craftsmen:craftsman_list' %}">Back to craftsmen</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

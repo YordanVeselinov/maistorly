@@ -1,57 +1,84 @@
 {% extends "base.html" %}
+{% load maistorly_tags %}
 
 {% block title %}Jobs{% endblock %}
 
 {% block content %}
-<h1>Job Requests</h1>
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+        <h1 class="mb-1">Job Requests</h1>
+        <p class="text-secondary mb-0">Browse open and completed home repair jobs.</p>
+    </div>
+    {% if request.user.is_authenticated %}
+    <a class="btn btn-primary" href="{% url 'jobs:job_create' %}">Create a job request</a>
+    {% endif %}
+</div>
 
-<form method="get">
-    <p>
-        <label for="id_q">Search</label>
-        <input id="id_q" type="text" name="q" value="{{ current_filters.q }}" placeholder="Search by title, description, or city">
-    </p>
-    <p>
-        <label for="id_city">City</label>
-        <input id="id_city" type="text" name="city" value="{{ current_filters.city }}" placeholder="Sofia">
-    </p>
-    <p>
-        <label for="id_status">Status</label>
-        <select id="id_status" name="status">
-            <option value="">All statuses</option>
-            {% for value, label in status_choices %}
-            <option value="{{ value }}"{% if current_filters.status == value %} selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-        </select>
-    </p>
-    <p>
-        <label for="id_category">Category</label>
-        <select id="id_category" name="category">
-            <option value="">All categories</option>
-            {% for category in categories %}
-            <option value="{{ category.id }}"{% if current_filters.category == category.id|stringformat:"s" %} selected{% endif %}>{{ category.name }}</option>
-            {% endfor %}
-        </select>
-    </p>
-    <button type="submit">Apply filters</button>
-    <a href="{% url 'jobs:job_list' %}">Clear</a>
-</form>
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-lg-4">
+                <label class="form-label" for="id_q">Search</label>
+                <input class="form-control" id="id_q" type="text" name="q" value="{{ current_filters.q }}" placeholder="Search by title, description, or city">
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <label class="form-label" for="id_city">City</label>
+                <input class="form-control" id="id_city" type="text" name="city" value="{{ current_filters.city }}" placeholder="Sofia">
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label class="form-label" for="id_status">Status</label>
+                <select class="form-select" id="id_status" name="status">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}"{% if current_filters.status == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label class="form-label" for="id_category">Category</label>
+                <select class="form-select" id="id_category" name="category">
+                    <option value="">All categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}"{% if current_filters.category == category.id|stringformat:"s" %} selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Apply filters</button>
+                <a class="btn btn-outline-secondary" href="{% url 'jobs:job_list' %}">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
 
-{% if request.user.is_authenticated %}
-<p><a href="{% url 'jobs:job_create' %}">Create a job request</a></p>
-{% endif %}
-
+<div class="row g-4">
 {% if job_requests %}
     {% for job_request in job_requests %}
-    <article>
-        <h2><a href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></h2>
-        <p>City: {{ job_request.city }}</p>
-        <p>Status: {{ job_request.get_status_display }}</p>
-        <p>Budget: {{ job_request.budget_min }} - {{ job_request.budget_max }}</p>
-        <p>Preferred date: {{ job_request.preferred_date }}</p>
-        <p>Posted by: {{ job_request.owner }}</p>
-    </article>
+    <div class="col-12">
+        <article class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                    <div>
+                        <h2 class="h4 mb-1"><a class="text-decoration-none" href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></h2>
+                        <p class="text-secondary mb-0">Posted by {{ job_request.owner }}</p>
+                    </div>
+                    <div>
+                        <span class="badge rounded-pill {{ job_request.status|status_badge_class }}">{{ job_request.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="row g-3 text-secondary">
+                    <div class="col-md-3"><strong class="text-dark">City:</strong> {{ job_request.city }}</div>
+                    <div class="col-md-4"><strong class="text-dark">Budget:</strong> {{ job_request|budget_range }}</div>
+                    <div class="col-md-3"><strong class="text-dark">Preferred date:</strong> {{ job_request.preferred_date }}</div>
+                </div>
+            </div>
+        </article>
+    </div>
     {% endfor %}
 {% else %}
-<p>No job requests match the current filters.</p>
+    <div class="col-12">
+        <div class="alert alert-light border mb-0">No job requests match the current filters.</div>
+    </div>
 {% endif %}
+</div>
 {% endblock %}
