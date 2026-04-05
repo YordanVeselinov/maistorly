@@ -20,10 +20,10 @@ class RegisterView(CreateView):
     success_url = reverse_lazy("accounts:login")
 
     def form_valid(self, form):
-        user = form.save()
+        self.object = form.save()
         client_group, _ = Group.objects.get_or_create(name=CLIENTS_GROUP)
-        user.groups.add(client_group)
-        CustomerAccount.objects.get_or_create(user=user)
+        self.object.groups.add(client_group)
+        CustomerAccount.objects.get_or_create(user=self.object)
         return redirect(self.get_success_url())
 
 
@@ -46,6 +46,10 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         customer_account, _ = CustomerAccount.objects.get_or_create(user=self.request.user)
         return customer_account
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 
 
