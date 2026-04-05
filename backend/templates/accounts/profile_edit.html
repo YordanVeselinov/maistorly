@@ -6,7 +6,17 @@
 <h1>Edit Profile Details</h1>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+    <p>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+        <small>{{ field.help_text }}</small>
+        {% endif %}
+        {{ field.errors }}
+    </p>
+    {% endfor %}
     <button type="submit">Save</button>
 </form>
 <p><a href="{% url 'accounts:profile' %}">Back to profile</a></p>

@@ -64,6 +64,60 @@ class ProfileViewTests(TestCase):
         self.assertEqual(account.city, "Sofia")
         self.assertEqual(account.country, "Bulgaria")
 
+    def test_profile_edit_only_updates_logged_in_user_customer_account(self):
+        current_user = User.objects.create_user(
+            username="currentuser",
+            email="current@example.com",
+            password="StrongPass12345!",
+        )
+        other_user = User.objects.create_user(
+            username="otheruser",
+            email="other@example.com",
+            password="StrongPass12345!",
+        )
+        CustomerAccount.objects.create(user=other_user, city="Plovdiv", country="Bulgaria")
+
+        self.client.force_login(current_user)
+        response = self.client.post(
+            reverse("accounts:profile_edit"),
+            data={
+                "phone": "+359888000000",
+                "address_line1": "Main street 1",
+                "address_line2": "Floor 2",
+                "city": "Sofia",
+                "state": "Sofia City Province",
+                "postal_code": "1000",
+                "country": "Bulgaria",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(CustomerAccount.objects.get(user=current_user).city, "Sofia")
+        self.assertEqual(CustomerAccount.objects.get(user=other_user).city, "Plovdiv")
+
+    def test_profile_edit_shows_user_friendly_phone_validation_error(self):
+        user = User.objects.create_user(
+            username="validationuser",
+            email="validation@example.com",
+            password="StrongPass12345!",
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("accounts:profile_edit"),
+            data={
+                "phone": "invalid-phone***",
+                "city": "Sofia",
+                "country": "Bulgaria",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Enter a valid phone number using digits, spaces, and + ( ) - symbols only.",
+        )
+
 
 class AuthenticationFlowTests(TestCase):
     def test_login_with_email_works_for_active_user(self):

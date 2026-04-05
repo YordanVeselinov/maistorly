@@ -8,7 +8,11 @@
 <p>Email: {{ request.user.email }}</p>
 <p>Group: {% if primary_group %}{{ primary_group.name }}{% else %}-{% endif %}</p>
 <p>Phone: {{ customer_account.phone|default:"-" }}</p>
+<p>Address line 1: {{ customer_account.address_line1|default:"-" }}</p>
+<p>Address line 2: {{ customer_account.address_line2|default:"-" }}</p>
 <p>City: {{ customer_account.city|default:"-" }}</p>
+<p>State / Region: {{ customer_account.state|default:"-" }}</p>
+<p>Postal code: {{ customer_account.postal_code|default:"-" }}</p>
 <p>Country: {{ customer_account.country|default:"-" }}</p>
 <p><a href="{% url 'accounts:profile_edit' %}">Edit profile details</a></p>
 {% endblock %}
