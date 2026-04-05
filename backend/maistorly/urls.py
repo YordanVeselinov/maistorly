@@ -26,4 +26,5 @@ urlpatterns = [
     path("craftsmen/", include("craftsmen.urls")),
     path("jobs/", include("jobs.urls")),
     path("reviews/", include("reviews.urls")),
+    path("api/", include("maistorly.api_urls")),
 ]

@@ -1,0 +1,48 @@
+from rest_framework import generics, permissions
+
+from .models import JobRequest
+from .serializers import JobRequestSerializer
+
+
+class JobRequestListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = JobRequestSerializer
+
+    def get_queryset(self):
+        queryset = JobRequest.objects.select_related("owner").prefetch_related(
+            "categories",
+            "required_skills",
+            "offers__craftsman",
+        )
+
+        city = self.request.query_params.get("city", "").strip()
+        category = self.request.query_params.get("category", "").strip()
+        status = self.request.query_params.get("status", "").strip()
+
+        if city:
+            queryset = queryset.filter(city__iexact=city)
+
+        if category:
+            queryset = queryset.filter(categories__id=category)
+
+        if status:
+            queryset = queryset.filter(status=status)
+
+        return queryset.distinct()
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class JobRequestDetailAPIView(generics.RetrieveAPIView):
+    queryset = JobRequest.objects.select_related("owner").prefetch_related(
+        "categories",
+        "required_skills",
+        "offers__craftsman",
+    )
+    serializer_class = JobRequestSerializer
+    permission_classes = [permissions.AllowAny]
