@@ -43,6 +43,7 @@ PROJECT_APPS = [
     'accounts.apps.AccountsConfig',
     'services.apps.ServicesConfig',
     'craftsmen.apps.CraftsmenConfig',
+    'jobs.apps.JobsConfig',
 ]
 
 INSTALLED_APPS = [
