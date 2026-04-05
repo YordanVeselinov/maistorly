@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}My Offers{% endblock %}
+
+{% block content %}
+<h1>My Offers</h1>
+
+{% if offers %}
+    {% for offer in offers %}
+    <article>
+        <h2><a href="{% url 'jobs:job_detail' offer.job_request.pk %}">{{ offer.job_request.title }}</a></h2>
+        <p>Job owner: {{ offer.job_request.owner }}</p>
+        <p>Status: {{ offer.get_status_display }}</p>
+        <p>Proposed price: {{ offer.proposed_price }}</p>
+        <p>Estimated days: {{ offer.estimated_days }}</p>
+        <p>Message: {{ offer.message }}</p>
+    </article>
+    {% endfor %}
+{% else %}
+<p>You have not submitted any offers yet.</p>
+{% endif %}
+{% endblock %}

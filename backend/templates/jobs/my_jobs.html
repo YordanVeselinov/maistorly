@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}My Jobs{% endblock %}
+
+{% block content %}
+<h1>My Job Requests</h1>
+<p><a href="{% url 'jobs:job_create' %}">Create a new job request</a></p>
+
+{% if job_requests %}
+    {% for job_request in job_requests %}
+    <article>
+        <h2><a href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></h2>
+        <p>City: {{ job_request.city }}</p>
+        <p>Status: {{ job_request.get_status_display }}</p>
+        <p>Budget: {{ job_request.budget_min }} - {{ job_request.budget_max }}</p>
+        <p>
+            <a href="{% url 'jobs:job_update' job_request.pk %}">Edit</a>
+            <a href="{% url 'jobs:job_delete' job_request.pk %}">Delete</a>
+        </p>
+    </article>
+    {% endfor %}
+{% else %}
+<p>You have not created any job requests yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Job Request{% endblock %}
+
+{% block content %}
+<h1>Delete Job Request</h1>
+<p>You are about to delete "{{ job_request.title }}". This action cannot be undone.</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+    <p>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+        <small>{{ field.help_text }}</small>
+        {% endif %}
+        {{ field.errors }}
+    </p>
+    {% endfor %}
+    <button type="submit">Delete</button>
+</form>
+<p><a href="{% url 'jobs:job_detail' job_request.pk %}">Cancel</a></p>
+{% endblock %}

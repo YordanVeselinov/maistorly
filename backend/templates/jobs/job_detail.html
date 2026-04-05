@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job_request.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ job_request.title }}</h1>
+<p>Posted by: {{ job_request.owner }}</p>
+<p>City: {{ job_request.city }}</p>
+<p>Status: {{ job_request.get_status_display }}</p>
+<p>Budget range: {{ job_request.budget_min }} - {{ job_request.budget_max }}</p>
+<p>Preferred date: {{ job_request.preferred_date }}</p>
+<p>Description: {{ job_request.description }}</p>
+
+<p>
+    Categories:
+    {% for category in job_request.categories.all %}
+        {{ category.name }}{% if not forloop.last %}, {% endif %}
+    {% empty %}
+        -
+    {% endfor %}
+</p>
+
+<p>
+    Required skills:
+    {% for skill in job_request.required_skills.all %}
+        {{ skill.name }}{% if not forloop.last %}, {% endif %}
+    {% empty %}
+        -
+    {% endfor %}
+</p>
+
+{% if is_owner %}
+<p>
+    <a href="{% url 'jobs:job_update' job_request.pk %}">Edit job request</a>
+    <a href="{% url 'jobs:job_delete' job_request.pk %}">Delete job request</a>
+</p>
+{% endif %}
+
+{% if can_create_offer %}
+<p><a href="{% url 'jobs:offer_create' job_request.pk %}">Submit offer</a></p>
+{% endif %}
+
+{% if is_owner %}
+<h2>Offers</h2>
+    {% if offers %}
+        {% for offer in offers %}
+        <article>
+            <p>Craftsman: {{ offer.craftsman }}</p>
+            <p>Status: {{ offer.get_status_display }}</p>
+            <p>Proposed price: {{ offer.proposed_price }}</p>
+            <p>Estimated days: {{ offer.estimated_days }}</p>
+            <p>Message: {{ offer.message }}</p>
+        </article>
+        {% endfor %}
+    {% else %}
+    <p>No offers yet.</p>
+    {% endif %}
+{% endif %}
+
+<p><a href="{% url 'jobs:job_list' %}">Back to jobs</a></p>
+{% endblock %}

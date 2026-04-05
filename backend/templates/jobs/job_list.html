@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Jobs{% endblock %}
+
+{% block content %}
+<h1>Job Requests</h1>
+
+<form method="get">
+    <p>
+        <label for="id_q">Search</label>
+        <input id="id_q" type="text" name="q" value="{{ current_filters.q }}" placeholder="Search by title, description, or city">
+    </p>
+    <p>
+        <label for="id_city">City</label>
+        <input id="id_city" type="text" name="city" value="{{ current_filters.city }}" placeholder="Sofia">
+    </p>
+    <p>
+        <label for="id_status">Status</label>
+        <select id="id_status" name="status">
+            <option value="">All statuses</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}"{% if current_filters.status == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        <label for="id_category">Category</label>
+        <select id="id_category" name="category">
+            <option value="">All categories</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}"{% if current_filters.category == category.id|stringformat:"s" %} selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <button type="submit">Apply filters</button>
+    <a href="{% url 'jobs:job_list' %}">Clear</a>
+</form>
+
+{% if request.user.is_authenticated %}
+<p><a href="{% url 'jobs:job_create' %}">Create a job request</a></p>
+{% endif %}
+
+{% if job_requests %}
+    {% for job_request in job_requests %}
+    <article>
+        <h2><a href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></h2>
+        <p>City: {{ job_request.city }}</p>
+        <p>Status: {{ job_request.get_status_display }}</p>
+        <p>Budget: {{ job_request.budget_min }} - {{ job_request.budget_max }}</p>
+        <p>Preferred date: {{ job_request.preferred_date }}</p>
+        <p>Posted by: {{ job_request.owner }}</p>
+    </article>
+    {% endfor %}
+{% else %}
+<p>No job requests match the current filters.</p>
+{% endif %}
+{% endblock %}

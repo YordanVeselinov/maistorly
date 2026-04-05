@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<h1>{{ page_title }}</h1>
+<p>Job request: <a href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+    <p>
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+        <small>{{ field.help_text }}</small>
+        {% endif %}
+        {{ field.errors }}
+    </p>
+    {% endfor %}
+    <button type="submit">{{ submit_label }}</button>
+</form>
+<p><a href="{% url 'jobs:job_detail' job_request.pk %}">Back to job request</a></p>
+{% endblock %}
