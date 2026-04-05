@@ -3,22 +3,32 @@
 {% block title %}Delete Job Request{% endblock %}
 
 {% block content %}
-<h1>Delete Job Request</h1>
-<p>You are about to delete "{{ job_request.title }}". This action cannot be undone.</p>
-<form method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}
-    <p>
-        {{ field.label_tag }}
-        {{ field }}
-        {% if field.help_text %}
-        <small>{{ field.help_text }}</small>
-        {% endif %}
-        {{ field.errors }}
-    </p>
-    {% endfor %}
-    <button type="submit">Delete</button>
-</form>
-<p><a href="{% url 'jobs:job_detail' job_request.pk %}">Cancel</a></p>
+<div class="mx-auto form-shell">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-lg-5">
+            <h1 class="h3 mb-3">Delete job request</h1>
+            <p class="text-secondary">You are about to delete <strong>{{ job_request.title }}</strong>. This action cannot be undone.</p>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <a class="btn btn-outline-secondary" href="{% url 'jobs:job_detail' job_request.pk %}">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

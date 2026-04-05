@@ -1,25 +1,44 @@
 {% extends "base.html" %}
+{% load maistorly_tags %}
 
 {% block title %}My Jobs{% endblock %}
 
 {% block content %}
-<h1>My Job Requests</h1>
-<p><a href="{% url 'jobs:job_create' %}">Create a new job request</a></p>
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+        <h1 class="mb-1">My Job Requests</h1>
+        <p class="text-secondary mb-0">Track, edit, and manage the jobs you have posted.</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'jobs:job_create' %}">Create a new job request</a>
+</div>
 
+<div class="row g-4">
 {% if job_requests %}
     {% for job_request in job_requests %}
-    <article>
-        <h2><a href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></h2>
-        <p>City: {{ job_request.city }}</p>
-        <p>Status: {{ job_request.get_status_display }}</p>
-        <p>Budget: {{ job_request.budget_min }} - {{ job_request.budget_max }}</p>
-        <p>
-            <a href="{% url 'jobs:job_update' job_request.pk %}">Edit</a>
-            <a href="{% url 'jobs:job_delete' job_request.pk %}">Delete</a>
-        </p>
-    </article>
+    <div class="col-12">
+        <article class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                    <div>
+                        <h2 class="h4 mb-1"><a class="text-decoration-none" href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></h2>
+                        <p class="text-secondary mb-0">{{ job_request.city }}</p>
+                    </div>
+                    <span class="badge rounded-pill align-self-start {{ job_request.status|status_badge_class }}">{{ job_request.get_status_display }}</span>
+                </div>
+                <p class="mb-3"><strong>Budget:</strong> {{ job_request|budget_range }}</p>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-primary btn-sm" href="{% url 'jobs:job_update' job_request.pk %}">Edit</a>
+                    <a class="btn btn-danger btn-sm" href="{% url 'jobs:job_delete' job_request.pk %}">Delete</a>
+                    <a class="btn btn-outline-secondary btn-sm" href="{% url 'jobs:job_detail' job_request.pk %}">View details</a>
+                </div>
+            </div>
+        </article>
+    </div>
     {% endfor %}
 {% else %}
-<p>You have not created any job requests yet.</p>
+    <div class="col-12">
+        <div class="alert alert-light border mb-0">You have not created any job requests yet.</div>
+    </div>
 {% endif %}
+</div>
 {% endblock %}

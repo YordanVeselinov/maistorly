@@ -3,10 +3,32 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-<h1>Create account</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
+<div class="mx-auto auth-shell">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-lg-5">
+            <div class="text-center mb-4">
+                <h1 class="h3 mb-2">Create account</h1>
+                <p class="text-secondary mb-0">Join Maistorly to post jobs and connect with trusted craftsmen.</p>
+            </div>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary w-100">Register</button>
+            </form>
+            <p class="text-center text-secondary mt-4 mb-0">Already have an account? <a href="{% url 'accounts:login' %}">Login</a></p>
+        </div>
+    </div>
+</div>
 {% endblock %}

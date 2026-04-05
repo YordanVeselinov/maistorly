@@ -28,7 +28,7 @@
                         <h2 class="h5 mb-1"><a class="text-decoration-none" href="{% url 'jobs:job_detail' review.job_request.pk %}">{{ review.job_request.title }}</a></h2>
                         <p class="text-secondary mb-0">Reviewer: {{ review.reviewer }}</p>
                     </div>
-                    <span class="badge text-bg-light border">Rating: {{ review.rating }} / 5</span>
+                    <span class="badge text-bg-light border"><i class="bi bi-star-fill text-warning me-1"></i>{{ review.rating }} / 5</span>
                 </div>
                 <p class="mb-3">{{ review.comment }}</p>
                 <div class="d-flex flex-wrap justify-content-between gap-2">

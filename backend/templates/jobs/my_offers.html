@@ -1,22 +1,41 @@
 {% extends "base.html" %}
+{% load maistorly_tags %}
 
 {% block title %}My Offers{% endblock %}
 
 {% block content %}
-<h1>My Offers</h1>
+<div class="mb-4">
+    <h1 class="mb-1">My Offers</h1>
+    <p class="text-secondary mb-0">Review the offers you have submitted for job requests.</p>
+</div>
 
+<div class="row g-4">
 {% if offers %}
     {% for offer in offers %}
-    <article>
-        <h2><a href="{% url 'jobs:job_detail' offer.job_request.pk %}">{{ offer.job_request.title }}</a></h2>
-        <p>Job owner: {{ offer.job_request.owner }}</p>
-        <p>Status: {{ offer.get_status_display }}</p>
-        <p>Proposed price: {{ offer.proposed_price }}</p>
-        <p>Estimated days: {{ offer.estimated_days }}</p>
-        <p>Message: {{ offer.message }}</p>
-    </article>
+    <div class="col-12">
+        <article class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                    <div>
+                        <h2 class="h4 mb-1"><a class="text-decoration-none" href="{% url 'jobs:job_detail' offer.job_request.pk %}">{{ offer.job_request.title }}</a></h2>
+                        <p class="text-secondary mb-0">Job owner: {{ offer.job_request.owner }}</p>
+                    </div>
+                    <span class="badge rounded-pill align-self-start {{ offer.status|status_badge_class }}">{{ offer.get_status_display }}</span>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4"><strong>Proposed price:</strong> {{ offer.proposed_price|currency_bgn }}</div>
+                    <div class="col-md-4"><strong>Estimated days:</strong> {{ offer.estimated_days }}</div>
+                </div>
+                <p class="mb-3">{{ offer.message }}</p>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'jobs:job_detail' offer.job_request.pk %}">View job request</a>
+            </div>
+        </article>
+    </div>
     {% endfor %}
 {% else %}
-<p>You have not submitted any offers yet.</p>
+    <div class="col-12">
+        <div class="alert alert-light border mb-0">You have not submitted any offers yet.</div>
+    </div>
 {% endif %}
+</div>
 {% endblock %}
