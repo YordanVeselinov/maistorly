@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Craftsmen{% endblock %}
+
+{% block content %}
+<h1>Craftsmen</h1>
+
+{% if craftsmen %}
+    {% for craftsman in craftsmen %}
+    <article>
+        <h2><a href="{% url 'craftsmen:craftsman_detail' craftsman.pk %}">{{ craftsman }}</a></h2>
+        <p>City: {{ craftsman.city|default:"-" }}</p>
+        <p>Country: {{ craftsman.country|default:"-" }}</p>
+        <p>Available: {% if craftsman.is_available %}Yes{% else %}No{% endif %}</p>
+        <p>
+            Skills:
+            {% for skill in craftsman.skills.all %}
+                {{ skill.name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                -
+            {% endfor %}
+        </p>
+    </article>
+    {% endfor %}
+{% else %}
+<p>No craftsmen profiles are available yet.</p>
+{% endif %}
+{% endblock %}

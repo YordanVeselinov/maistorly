@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ craftsman }}{% endblock %}
+
+{% block content %}
+<h1>{{ craftsman }}</h1>
+<p>Username: {{ craftsman.user.username }}</p>
+<p>City: {{ craftsman.city|default:"-" }}</p>
+<p>Country: {{ craftsman.country|default:"-" }}</p>
+<p>Available: {% if craftsman.is_available %}Yes{% else %}No{% endif %}</p>
+<p>Bio: {{ craftsman.bio|default:"-" }}</p>
+<p>Phone: {{ craftsman.phone|default:"-" }}</p>
+<p>
+    Skills:
+    {% for skill in craftsman.skills.all %}
+        {{ skill.name }}{% if not forloop.last %}, {% endif %}
+    {% empty %}
+        -
+    {% endfor %}
+</p>
+
+{% if request.user.is_authenticated and request.user == craftsman.user %}
+<p><a href="{% url 'craftsmen:profile_edit' request.user.pk %}">Edit my craftsman profile</a></p>
+{% endif %}
+
+<p><a href="{% url 'craftsmen:craftsman_list' %}">Back to craftsmen</a></p>
+{% endblock %}
