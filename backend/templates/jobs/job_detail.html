@@ -42,14 +42,31 @@
 
 {% if is_owner %}
 <h2>Offers</h2>
-    {% if offers %}
-        {% for offer in offers %}
+    {% if offer_entries %}
+        {% for entry in offer_entries %}
         <article>
+            {% with offer=entry.offer craftsman_profile=entry.craftsman_profile review=entry.review %}
             <p>Craftsman: {{ offer.craftsman }}</p>
             <p>Status: {{ offer.get_status_display }}</p>
             <p>Proposed price: {{ offer.proposed_price }}</p>
             <p>Estimated days: {{ offer.estimated_days }}</p>
             <p>Message: {{ offer.message }}</p>
+            {% if craftsman_profile %}
+            <p><a href="{% url 'craftsmen:craftsman_detail' craftsman_profile.pk %}">View craftsman profile</a></p>
+            {% endif %}
+            {% if job_request.status == "completed" %}
+                {% if review %}
+                <p>
+                    <a href="{% url 'reviews:review_update' review.pk %}">Edit review</a>
+                    <a href="{% url 'reviews:review_delete' review.pk %}">Delete review</a>
+                </p>
+                {% elif craftsman_profile %}
+                <p><a href="{% url 'reviews:review_create' job_request.pk craftsman_profile.pk %}">Write review</a></p>
+                {% else %}
+                <p>This craftsman does not have a public profile yet.</p>
+                {% endif %}
+            {% endif %}
+            {% endwith %}
         </article>
         {% endfor %}
     {% else %}

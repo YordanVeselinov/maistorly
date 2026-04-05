@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Reviews for {{ craftsman_profile }}{% endblock %}
+
+{% block content %}
+<h1>Reviews for {{ craftsman_profile }}</h1>
+<p>City: {{ craftsman_profile.city|default:"-" }}</p>
+<p>Available: {% if craftsman_profile.is_available %}Yes{% else %}No{% endif %}</p>
+<p>Average rating: {% if average_rating %}{{ average_rating|floatformat:1 }} / 5{% else %}-{% endif %}</p>
+
+{% if reviews %}
+    {% for review in reviews %}
+    <article>
+        <p>Job request: <a href="{% url 'jobs:job_detail' review.job_request.pk %}">{{ review.job_request.title }}</a></p>
+        <p>Reviewer: {{ review.reviewer }}</p>
+        <p>Rating: {{ review.rating }} / 5</p>
+        <p>Comment: {{ review.comment }}</p>
+        <p>Created: {{ review.created_at }}</p>
+        {% if request.user.is_authenticated and request.user == review.reviewer %}
+        <p>
+            <a href="{% url 'reviews:review_update' review.pk %}">Edit review</a>
+            <a href="{% url 'reviews:review_delete' review.pk %}">Delete review</a>
+        </p>
+        {% endif %}
+    </article>
+    {% endfor %}
+{% else %}
+<p>No reviews yet for this craftsman.</p>
+{% endif %}
+
+<p><a href="{% url 'craftsmen:craftsman_detail' craftsman_profile.pk %}">Back to craftsman</a></p>
+{% endblock %}

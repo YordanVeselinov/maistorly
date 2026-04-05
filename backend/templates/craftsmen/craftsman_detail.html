@@ -19,6 +19,8 @@
     {% endfor %}
 </p>
 
+<p><a href="{% url 'reviews:craftsman_reviews' craftsman.pk %}">View reviews</a></p>
+
 {% if request.user.is_authenticated and request.user == craftsman.user %}
 <p><a href="{% url 'craftsmen:profile_edit' request.user.pk %}">Edit my craftsman profile</a></p>
 {% endif %}

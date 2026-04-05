@@ -13,6 +13,8 @@ from .forms import (
     OfferCreateForm,
 )
 from .models import JobRequest, Offer
+from craftsmen.models import CraftsmanProfile
+from reviews.models import Review
 from services.models import Category
 
 
@@ -88,6 +90,23 @@ class JobRequestDetailView(DetailView):
         is_authenticated = user.is_authenticated
         is_owner = is_authenticated and user == self.object.owner
         is_craftsman = is_authenticated and user.groups.filter(name=CRAFTSMEN_GROUP).exists()
+        offers = list(self.object.offers.select_related("craftsman").all()) if is_owner else []
+        craftsman_profiles = {
+            profile.user_id: profile
+            for profile in CraftsmanProfile.objects.select_related("user").filter(
+                user_id__in=[offer.craftsman_id for offer in offers]
+            )
+        }
+        existing_reviews_by_craftsman = {}
+
+        if is_owner:
+            existing_reviews = Review.objects.filter(
+                    job_request=self.object,
+                    reviewer=user,
+                ).select_related("craftsman")
+            existing_reviews_by_craftsman = {
+                review.craftsman_id: review for review in existing_reviews
+            }
 
         context["is_owner"] = is_owner
         context["can_create_offer"] = (
@@ -95,7 +114,15 @@ class JobRequestDetailView(DetailView):
             and is_craftsman
             and user != self.object.owner
         )
-        context["offers"] = self.object.offers.select_related("craftsman").all() if is_owner else []
+        context["offers"] = offers
+        context["offer_entries"] = [
+            {
+                "offer": offer,
+                "craftsman_profile": craftsman_profiles.get(offer.craftsman_id),
+                "review": existing_reviews_by_craftsman.get(offer.craftsman_id),
+            }
+            for offer in offers
+        ]
         return context
 
 
