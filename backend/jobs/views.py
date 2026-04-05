@@ -16,6 +16,7 @@ from .models import JobRequest, Offer
 from craftsmen.models import CraftsmanProfile
 from reviews.models import Review
 from services.models import Category
+from .tasks import send_offer_notification_email
 
 
 class CraftsmanRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -227,6 +228,11 @@ class OfferCreateView(CraftsmanRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk})
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        send_offer_notification_email.delay(self.object.pk)
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
