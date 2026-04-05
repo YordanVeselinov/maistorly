@@ -26,6 +26,26 @@ class RegisterViewTests(TestCase):
         response = self.client.get(reverse("accounts:register"))
         self.assertEqual(response.status_code, 200)
 
+    def test_register_rejects_duplicate_email(self):
+        User.objects.create_user(
+            username="existinguser",
+            email="existing@example.com",
+            password="StrongPass12345!",
+        )
+
+        response = self.client.post(
+            reverse("accounts:register"),
+            data={
+                "username": "newclient",
+                "email": "existing@example.com",
+                "password1": "StrongPass12345!",
+                "password2": "StrongPass12345!",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "A user with this email already exists.")
+
 
 class ProfileViewTests(TestCase):
     def test_profile_page_creates_missing_customer_account(self):
