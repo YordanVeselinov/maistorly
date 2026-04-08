@@ -26,6 +26,22 @@ class RegisterViewTests(TestCase):
         response = self.client.get(reverse("accounts:register"))
         self.assertEqual(response.status_code, 200)
 
+    def test_register_logs_in_user_immediately(self):
+        response = self.client.post(
+            reverse("accounts:register"),
+            data={
+                "username": "autologin",
+                "email": "autologin@example.com",
+                "password1": "StrongPass12345!",
+                "password2": "StrongPass12345!",
+            },
+        )
+
+        user = User.objects.get(username="autologin")
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("accounts:profile"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
+
     def test_register_rejects_duplicate_email(self):
         User.objects.create_user(
             username="existinguser",

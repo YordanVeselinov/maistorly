@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import login
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import redirect
@@ -17,13 +18,14 @@ class HomeView(TemplateView):
 class RegisterView(CreateView):
     form_class = RegisterForm
     template_name = "accounts/register.html"
-    success_url = reverse_lazy("accounts:login")
+    success_url = reverse_lazy("accounts:profile")
 
     def form_valid(self, form):
         self.object = form.save()
         client_group, _ = Group.objects.get_or_create(name=CLIENTS_GROUP)
         self.object.groups.add(client_group)
         CustomerAccount.objects.get_or_create(user=self.object)
+        login(self.request, self.object, backend="accounts.backends.EmailBackend")
         return redirect(self.get_success_url())
 
 
