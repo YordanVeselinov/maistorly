@@ -1,12 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import Http404
-from django.urls import reverse_lazy
-from django.views.generic import DetailView, ListView, UpdateView
+from django.urls import reverse, reverse_lazy
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from accounts.signals import CRAFTSMEN_GROUP
 
-from .forms import CraftsmanProfileForm
-from .models import CraftsmanProfile
+from .forms import CraftsmanProfileForm, ServiceListingCreateForm, ServiceListingUpdateForm
+from .models import CraftsmanProfile, ServiceListing, ServiceListingImage
 
 
 class CraftsmanGroupRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -67,3 +67,107 @@ class CraftsmanProfileEditView(CraftsmanGroupRequiredMixin, UpdateView):
         context["page_title"] = "Edit Craftsman Profile"
         context["submit_label"] = "Save profile"
         return context
+
+
+class ServiceListingImageUploadMixin:
+    def _save_uploaded_images(self, listing, images):
+        for image_file in images:
+            ServiceListingImage.objects.create(listing=listing, image=image_file)
+
+
+class ServiceListingListView(ListView):
+    model = ServiceListing
+    template_name = "craftsmen/service_listing_list.html"
+    context_object_name = "service_listings"
+
+    def get_queryset(self):
+        return ServiceListing.objects.select_related("craftsman", "category").prefetch_related(
+            "skills",
+            "images",
+        )
+
+
+class ServiceListingDetailView(DetailView):
+    model = ServiceListing
+    template_name = "craftsmen/service_listing_detail.html"
+    context_object_name = "service_listing"
+
+    def get_queryset(self):
+        return ServiceListing.objects.select_related("craftsman", "category").prefetch_related(
+            "skills",
+            "images",
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_owner"] = (
+            self.request.user.is_authenticated and self.request.user == self.object.craftsman
+        )
+        return context
+
+
+class ServiceListingCreateView(CraftsmanGroupRequiredMixin, ServiceListingImageUploadMixin, CreateView):
+    model = ServiceListing
+    form_class = ServiceListingCreateForm
+    template_name = "craftsmen/service_listing_form.html"
+
+    def form_valid(self, form):
+        form.instance.craftsman = self.request.user
+        response = super().form_valid(form)
+        self._save_uploaded_images(self.object, form.cleaned_data.get("images", []))
+        return response
+
+    def get_success_url(self):
+        return reverse("craftsmen:service_listing_detail", kwargs={"pk": self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["page_title"] = "Create Service Listing"
+        context["submit_label"] = "Create service listing"
+        return context
+
+
+class ServiceListingUpdateView(CraftsmanGroupRequiredMixin, ServiceListingImageUploadMixin, UpdateView):
+    model = ServiceListing
+    form_class = ServiceListingUpdateForm
+    template_name = "craftsmen/service_listing_form.html"
+
+    def get_queryset(self):
+        return ServiceListing.objects.filter(craftsman=self.request.user).select_related(
+            "category",
+        ).prefetch_related("skills", "images")
+
+    def form_valid(self, form):
+        form.instance.craftsman = self.request.user
+        response = super().form_valid(form)
+        self._save_uploaded_images(self.object, form.cleaned_data.get("images", []))
+        return response
+
+    def get_success_url(self):
+        return reverse("craftsmen:service_listing_detail", kwargs={"pk": self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["page_title"] = "Edit Service Listing"
+        context["submit_label"] = "Save changes"
+        return context
+
+
+class ServiceListingDeleteView(CraftsmanGroupRequiredMixin, DeleteView):
+    model = ServiceListing
+    template_name = "craftsmen/service_listing_confirm_delete.html"
+    success_url = reverse_lazy("craftsmen:my_service_listings")
+
+    def get_queryset(self):
+        return ServiceListing.objects.filter(craftsman=self.request.user)
+
+
+class MyServiceListingListView(CraftsmanGroupRequiredMixin, ListView):
+    model = ServiceListing
+    template_name = "craftsmen/my_service_listings.html"
+    context_object_name = "service_listings"
+
+    def get_queryset(self):
+        return ServiceListing.objects.filter(craftsman=self.request.user).select_related(
+            "category",
+        ).prefetch_related("skills", "images")

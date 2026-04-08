@@ -4,7 +4,40 @@ from django.utils import timezone
 from .models import JobRequest, Offer
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleImageFileField(forms.FileField):
+    def clean(self, data, initial=None):
+        cleaned_files = []
+        single_file_clean = super().clean
+
+        if not data:
+            return cleaned_files
+
+        if isinstance(data, (list, tuple)):
+            for uploaded_file in data:
+                cleaned_files.append(single_file_clean(uploaded_file, initial))
+            return cleaned_files
+
+        cleaned_files.append(single_file_clean(data, initial))
+        return cleaned_files
+
+
 class BaseJobRequestForm(forms.ModelForm):
+    images = MultipleImageFileField(
+        label="Reference images",
+        required=False,
+        help_text="Optional. Upload one or more images showing the required work.",
+        widget=MultipleFileInput(
+            attrs={
+                "class": "form-control",
+                "accept": ".jpg,.jpeg,.png,.webp",
+            }
+        ),
+    )
+
     class Meta:
         model = JobRequest
         fields = (
@@ -16,6 +49,7 @@ class BaseJobRequestForm(forms.ModelForm):
             "preferred_date",
             "categories",
             "required_skills",
+            "images",
         )
         labels = {
             "title": "Job title",
@@ -214,9 +248,10 @@ class JobRequestUpdateForm(BaseJobRequestForm):
                 "budget_min",
                 "budget_max",
                 "preferred_date",
-                "status",
                 "categories",
                 "required_skills",
+                "images",
+                "status",
             ]
         )
         if self.instance and self.instance.owner_id:

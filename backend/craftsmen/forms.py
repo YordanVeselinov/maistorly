@@ -1,7 +1,28 @@
 from django import forms
 from django.core.validators import RegexValidator
 
-from .models import CraftsmanProfile
+from .models import CraftsmanProfile, ServiceListing
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleImageFileField(forms.FileField):
+    def clean(self, data, initial=None):
+        cleaned_files = []
+        single_file_clean = super().clean
+
+        if not data:
+            return cleaned_files
+
+        if isinstance(data, (list, tuple)):
+            for uploaded_file in data:
+                cleaned_files.append(single_file_clean(uploaded_file, initial))
+            return cleaned_files
+
+        cleaned_files.append(single_file_clean(data, initial))
+        return cleaned_files
 
 
 class CraftsmanProfileForm(forms.ModelForm):
@@ -148,3 +169,108 @@ class CraftsmanProfileForm(forms.ModelForm):
 
     def clean_country(self):
         return self.cleaned_data.get("country", "").strip()
+
+
+class BaseServiceListingForm(forms.ModelForm):
+    images = MultipleImageFileField(
+        label="Work images",
+        required=False,
+        help_text="Optional. Upload one or more images that showcase your work.",
+        widget=MultipleFileInput(
+            attrs={
+                "class": "form-control",
+                "accept": ".jpg,.jpeg,.png,.webp",
+            }
+        ),
+    )
+
+    class Meta:
+        model = ServiceListing
+        fields = (
+            "title",
+            "description",
+            "rough_price",
+            "category",
+            "skills",
+            "images",
+        )
+        labels = {
+            "title": "Service title",
+            "description": "Service description",
+            "rough_price": "Rough starting price",
+            "category": "Category",
+            "skills": "Skills",
+        }
+        help_texts = {
+            "title": "Use a clear title describing the type of work you offer.",
+            "description": "Explain what the service includes and key details clients should know.",
+            "rough_price": "Enter an approximate starting price for this service.",
+            "category": "Optional. Select the main category for this listing.",
+            "skills": "Optional. Select related skills for better discoverability.",
+        }
+        error_messages = {
+            "title": {
+                "required": "Please enter a title for your service listing.",
+                "max_length": "Service title must be at most 200 characters long.",
+            },
+            "description": {
+                "required": "Please provide a description of your service.",
+            },
+            "rough_price": {
+                "required": "Please enter a rough starting price.",
+                "invalid": "Enter a valid price amount.",
+            },
+        }
+        widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Kitchen sink installation",
+                }
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "I install and replace kitchen sinks, including drain and faucet connection.",
+                    "rows": 5,
+                }
+            ),
+            "rough_price": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "120.00",
+                    "min": "0",
+                    "step": "0.01",
+                }
+            ),
+            "category": forms.Select(
+                attrs={
+                    "class": "form-control",
+                }
+            ),
+            "skills": forms.SelectMultiple(
+                attrs={
+                    "class": "form-control",
+                }
+            ),
+        }
+
+    def clean_title(self):
+        return self.cleaned_data.get("title", "").strip()
+
+    def clean_description(self):
+        return self.cleaned_data.get("description", "").strip()
+
+    def clean_rough_price(self):
+        rough_price = self.cleaned_data.get("rough_price")
+        if rough_price is not None and rough_price < 0:
+            raise forms.ValidationError("Rough starting price cannot be negative.")
+        return rough_price
+
+
+class ServiceListingCreateForm(BaseServiceListingForm):
+    pass
+
+
+class ServiceListingUpdateForm(BaseServiceListingForm):
+    pass

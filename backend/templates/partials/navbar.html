@@ -31,6 +31,11 @@
                             <i class="bi bi-people me-1"></i>Craftsmen
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name == 'service_listing_list' %} active{% endif %}" href="{% url 'craftsmen:service_listing_list' %}">
+                            <i class="bi bi-briefcase me-1"></i>Services
+                        </a>
+                    </li>
                 {% endif %}
             </ul>
 
@@ -40,6 +45,11 @@
                     <li class="nav-item">
                         <a class="nav-link{% if request.resolver_match.app_name == 'jobs' and request.resolver_match.url_name == 'my_offers' %} active{% endif %}" href="{% url 'jobs:my_offers' %}">
                             <i class="bi bi-send-check me-1"></i>My Offers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name == 'my_service_listings' %} active{% endif %}" href="{% url 'craftsmen:my_service_listings' %}">
+                            <i class="bi bi-list-check me-1"></i>My Services
                         </a>
                     </li>
                     <li class="nav-item">

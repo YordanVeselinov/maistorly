@@ -21,8 +21,14 @@
                     <h2 class="h4 mb-3">Quick access</h2>
                     <div class="d-grid gap-2">
                         {% if request.user.is_authenticated %}
+                        {% if request.user|has_group:"Clients" %}
                         <a class="btn btn-outline-primary" href="{% url 'jobs:job_create' %}">Create Job Request</a>
                         <a class="btn btn-outline-primary" href="{% url 'jobs:my_jobs' %}">Manage My Jobs</a>
+                        {% endif %}
+                        {% if request.user|has_group:"Craftsmen" %}
+                        <a class="btn btn-outline-primary" href="{% url 'craftsmen:service_listing_create' %}">Create Service Listing</a>
+                        <a class="btn btn-outline-primary" href="{% url 'craftsmen:my_service_listings' %}">Manage My Services</a>
+                        {% endif %}
                         <a class="btn btn-outline-primary" href="{% url 'accounts:profile' %}">Open Profile</a>
                         {% else %}
                         <a class="btn btn-outline-primary" href="{% url 'accounts:register' %}">Create Account</a>

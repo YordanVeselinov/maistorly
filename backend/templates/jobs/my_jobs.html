@@ -9,7 +9,9 @@
         <h1 class="mb-1">My Job Requests</h1>
         <p class="text-secondary mb-0">Track, edit, and manage the jobs you have posted.</p>
     </div>
+    {% if request.user|has_group:"Clients" %}
     <a class="btn btn-primary" href="{% url 'jobs:job_create' %}">Create a new job request</a>
+    {% endif %}
 </div>
 
 <div class="row g-4">

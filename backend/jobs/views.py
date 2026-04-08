@@ -4,7 +4,7 @@ from django.http import Http404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
-from accounts.signals import CRAFTSMEN_GROUP
+from accounts.signals import CLIENTS_GROUP, CRAFTSMEN_GROUP
 
 from .forms import (
     JobRequestCreateForm,
@@ -12,11 +12,18 @@ from .forms import (
     JobRequestUpdateForm,
     OfferCreateForm,
 )
-from .models import JobRequest, Offer
+from .models import JobRequest, JobRequestImage, Offer
 from craftsmen.models import CraftsmanProfile
 from reviews.models import Review
 from services.models import Category
 from .tasks import send_offer_notification_email
+
+
+class ClientRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    raise_exception = True
+
+    def test_func(self):
+        return self.request.user.groups.filter(name=CLIENTS_GROUP).exists()
 
 
 class CraftsmanRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -34,7 +41,7 @@ class JobRequestListView(ListView):
     def get_queryset(self):
         queryset = (
             JobRequest.objects.select_related("owner")
-            .prefetch_related("categories", "required_skills")
+            .prefetch_related("categories", "required_skills", "images")
         )
 
         city = self.request.GET.get("city", "").strip()
@@ -82,6 +89,7 @@ class JobRequestDetailView(DetailView):
         return JobRequest.objects.select_related("owner").prefetch_related(
             "categories",
             "required_skills",
+            "images",
             "offers__craftsman",
         )
 
@@ -127,14 +135,22 @@ class JobRequestDetailView(DetailView):
         return context
 
 
-class JobRequestCreateView(LoginRequiredMixin, CreateView):
+class JobRequestImageUploadMixin:
+    def _save_uploaded_images(self, job_request, images):
+        for image_file in images:
+            JobRequestImage.objects.create(job_request=job_request, image=image_file)
+
+
+class JobRequestCreateView(ClientRequiredMixin, JobRequestImageUploadMixin, CreateView):
     model = JobRequest
     form_class = JobRequestCreateForm
     template_name = "jobs/job_form.html"
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        self._save_uploaded_images(self.object, form.cleaned_data.get("images", []))
+        return response
 
     def get_success_url(self):
         return reverse("jobs:job_detail", kwargs={"pk": self.object.pk})
@@ -146,7 +162,7 @@ class JobRequestCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-class JobRequestUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class JobRequestUpdateView(LoginRequiredMixin, UserPassesTestMixin, JobRequestImageUploadMixin, UpdateView):
     model = JobRequest
     form_class = JobRequestUpdateForm
     template_name = "jobs/job_form.html"
@@ -156,6 +172,7 @@ class JobRequestUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return JobRequest.objects.filter(owner=self.request.user).prefetch_related(
             "categories",
             "required_skills",
+            "images",
         )
 
     def test_func(self):
@@ -163,6 +180,11 @@ class JobRequestUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def get_success_url(self):
         return reverse("jobs:job_detail", kwargs={"pk": self.object.pk})
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        self._save_uploaded_images(self.object, form.cleaned_data.get("images", []))
+        return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -203,7 +225,7 @@ class MyJobRequestListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return (
             JobRequest.objects.filter(owner=self.request.user)
-            .prefetch_related("categories", "required_skills")
+            .prefetch_related("categories", "required_skills", "images")
         )
 
 

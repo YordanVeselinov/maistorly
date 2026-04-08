@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -83,6 +83,33 @@ class JobRequest(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
+
+
+class JobRequestImage(models.Model):
+    job_request = models.ForeignKey(
+        JobRequest,
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.FileField(
+        upload_to="job_requests/images/",
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["jpg", "jpeg", "png", "webp"],
+            )
+        ],
+    )
+    caption = models.CharField(
+        max_length=200,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at",)
+
+    def __str__(self) -> str:
+        return f"Image for {self.job_request.title}"
 
 
 class Offer(models.Model):

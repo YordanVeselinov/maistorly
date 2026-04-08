@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from accounts.signals import CRAFTSMEN_GROUP
+from accounts.signals import CLIENTS_GROUP, CRAFTSMEN_GROUP
 from accounts.models import User
 from services.models import Category, Skill
 
@@ -54,6 +54,8 @@ class JobRequestFormTests(TestCase):
 
 class JobRequestViewTests(TestCase):
     def setUp(self):
+        self.clients_group, _ = Group.objects.get_or_create(name=CLIENTS_GROUP)
+        self.craftsmen_group, _ = Group.objects.get_or_create(name=CRAFTSMEN_GROUP)
         self.owner = User.objects.create_user(
             username="owner",
             email="owner@example.com",
@@ -64,6 +66,8 @@ class JobRequestViewTests(TestCase):
             email="other@example.com",
             password="StrongPass12345!",
         )
+        self.owner.groups.add(self.clients_group)
+        self.other_user.groups.add(self.clients_group)
         self.category = Category.objects.create(name="Electrical")
         self.skill = Skill.objects.create(category=self.category, name="Wiring")
         self.job_request = JobRequest.objects.create(
@@ -98,6 +102,32 @@ class JobRequestViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         job_request = JobRequest.objects.get(title="Install faucet")
         self.assertEqual(job_request.owner, self.other_user)
+
+    def test_craftsman_cannot_create_job_request(self):
+        craftsman = User.objects.create_user(
+            username="craftsman_forbidden",
+            email="craftsman_forbidden@example.com",
+            password="StrongPass12345!",
+        )
+        craftsman.groups.add(self.craftsmen_group)
+        self.client.force_login(craftsman)
+
+        response = self.client.post(
+            reverse("jobs:job_create"),
+            data={
+                "title": "Blocked request",
+                "description": "This should not be allowed.",
+                "city": "Sofia",
+                "budget_min": "100.00",
+                "budget_max": "150.00",
+                "preferred_date": timezone.localdate() + timedelta(days=2),
+                "categories": [self.category.pk],
+                "required_skills": [self.skill.pk],
+            },
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(JobRequest.objects.filter(title="Blocked request").exists())
 
     def test_non_owner_cannot_update_job_request(self):
         self.client.force_login(self.other_user)
@@ -135,6 +165,7 @@ class JobRequestViewTests(TestCase):
 
 class OfferViewTests(TestCase):
     def setUp(self):
+        self.clients_group, _ = Group.objects.get_or_create(name=CLIENTS_GROUP)
         self.owner = User.objects.create_user(
             username="owner2",
             email="owner2@example.com",
@@ -150,6 +181,8 @@ class OfferViewTests(TestCase):
             email="client1@example.com",
             password="StrongPass12345!",
         )
+        self.owner.groups.add(self.clients_group)
+        self.client_user.groups.add(self.clients_group)
         craftsmen_group, _ = Group.objects.get_or_create(name=CRAFTSMEN_GROUP)
         self.craftsman.groups.add(craftsmen_group)
 
@@ -209,11 +242,14 @@ class OfferViewTests(TestCase):
 
 class JobApiTests(TestCase):
     def setUp(self):
+        self.clients_group, _ = Group.objects.get_or_create(name=CLIENTS_GROUP)
+        self.craftsmen_group, _ = Group.objects.get_or_create(name=CRAFTSMEN_GROUP)
         self.owner = User.objects.create_user(
             username="apiowner",
             email="apiowner@example.com",
             password="StrongPass12345!",
         )
+        self.owner.groups.add(self.clients_group)
         self.category = Category.objects.create(name="Painting")
         self.skill = Skill.objects.create(category=self.category, name="Interior Painting")
         self.job_request = JobRequest.objects.create(
@@ -257,6 +293,30 @@ class JobApiTests(TestCase):
         self.assertEqual(response.status_code, 201)
         job_request = JobRequest.objects.get(title="Install shelves")
         self.assertEqual(job_request.owner, self.owner)
+
+    def test_craftsman_cannot_create_job_via_api(self):
+        craftsman = User.objects.create_user(
+            username="apicraftsman",
+            email="apicraftsman@example.com",
+            password="StrongPass12345!",
+        )
+        craftsman.groups.add(self.craftsmen_group)
+        self.client.force_login(craftsman)
+
+        response = self.client.post(
+            reverse("api-job-list"),
+            data={
+                "title": "Install lamp",
+                "description": "Need a lamp installed.",
+                "city": "Sofia",
+                "budget_min": "40.00",
+                "budget_max": "80.00",
+                "preferred_date": str(timezone.localdate() + timedelta(days=4)),
+            },
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 403)
 
     def test_unauthenticated_user_cannot_create_job_via_api(self):
         response = self.client.post(

@@ -9,9 +9,9 @@
             <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                 <div>
                     <h1 class="h3 mb-2">{{ page_title }}</h1>
-                    <p class="text-secondary mb-0">Provide clear details so the right craftsmen can respond.</p>
+                    <p class="text-secondary mb-0">Describe the work you offer so clients can quickly understand your service.</p>
                 </div>
-                <a class="btn btn-outline-secondary" href="{% url 'jobs:job_list' %}">Back</a>
+                <a class="btn btn-outline-secondary" href="{% url 'craftsmen:my_service_listings' %}">Back</a>
             </div>
             <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
@@ -30,7 +30,7 @@
                 {% endfor %}
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
-                    <a class="btn btn-outline-secondary" href="{% url 'jobs:job_list' %}">Cancel</a>
+                    <a class="btn btn-outline-secondary" href="{% url 'craftsmen:my_service_listings' %}">Cancel</a>
                 </div>
             </form>
         </div>

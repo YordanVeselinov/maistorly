@@ -9,7 +9,7 @@
         <h1 class="mb-1">Job Requests</h1>
         <p class="text-secondary mb-0">Browse open and completed home repair jobs.</p>
     </div>
-    {% if request.user.is_authenticated %}
+    {% if request.user.is_authenticated and request.user|has_group:"Clients" %}
     <a class="btn btn-primary" href="{% url 'jobs:job_create' %}">Create a job request</a>
     {% endif %}
 </div>

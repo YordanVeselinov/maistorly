@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import JobRequest, Offer
+from .models import JobRequest, JobRequestImage, Offer
+
+
+class JobRequestImageInline(admin.TabularInline):
+    model = JobRequestImage
+    extra = 1
 
 
 @admin.register(JobRequest)
@@ -25,6 +30,7 @@ class JobRequestAdmin(admin.ModelAdmin):
         "owner__email",
     )
     filter_horizontal = ("categories", "required_skills")
+    inlines = [JobRequestImageInline]
 
 
 @admin.register(Offer)

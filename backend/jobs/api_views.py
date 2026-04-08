@@ -1,7 +1,19 @@
 from rest_framework import generics, permissions
 
+from accounts.signals import CLIENTS_GROUP
+
 from .models import JobRequest
 from .serializers import JobRequestSerializer
+
+
+class IsClientUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and user.groups.filter(name=CLIENTS_GROUP).exists()
+        )
 
 
 class JobRequestListCreateAPIView(generics.ListCreateAPIView):
@@ -11,6 +23,7 @@ class JobRequestListCreateAPIView(generics.ListCreateAPIView):
         queryset = JobRequest.objects.select_related("owner").prefetch_related(
             "categories",
             "required_skills",
+            "images",
             "offers__craftsman",
         )
 
@@ -31,7 +44,7 @@ class JobRequestListCreateAPIView(generics.ListCreateAPIView):
 
     def get_permissions(self):
         if self.request.method == "POST":
-            return [permissions.IsAuthenticated()]
+            return [IsClientUser()]
         return [permissions.AllowAny()]
 
     def perform_create(self, serializer):
@@ -42,6 +55,7 @@ class JobRequestDetailAPIView(generics.RetrieveAPIView):
     queryset = JobRequest.objects.select_related("owner").prefetch_related(
         "categories",
         "required_skills",
+        "images",
         "offers__craftsman",
     )
     serializer_class = JobRequestSerializer

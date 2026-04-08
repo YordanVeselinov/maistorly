@@ -1,9 +1,13 @@
+from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from django.urls import reverse
 
+from accounts.signals import CLIENTS_GROUP, CRAFTSMEN_GROUP
 from accounts.models import User
 from services.models import Category, Skill
 
-from .models import CraftsmanProfile
+from .models import CraftsmanProfile, ServiceListing
 
 
 class CraftsmanProfileModelTests(TestCase):
@@ -36,3 +40,78 @@ class CraftsmanProfileModelTests(TestCase):
         profile = CraftsmanProfile.objects.create(user=user)
 
         self.assertEqual(str(profile), "craftsman2")
+
+
+class ServiceListingViewTests(TestCase):
+    def setUp(self):
+        self.clients_group, _ = Group.objects.get_or_create(name=CLIENTS_GROUP)
+        self.craftsmen_group, _ = Group.objects.get_or_create(name=CRAFTSMEN_GROUP)
+        self.craftsman = User.objects.create_user(
+            username="listingcraftsman",
+            email="listingcraftsman@example.com",
+            password="StrongPass12345!",
+        )
+        self.client_user = User.objects.create_user(
+            username="listingclient",
+            email="listingclient@example.com",
+            password="StrongPass12345!",
+        )
+        self.craftsman.groups.add(self.craftsmen_group)
+        self.client_user.groups.add(self.clients_group)
+
+        self.category = Category.objects.create(name="Plastering")
+        self.skill = Skill.objects.create(category=self.category, name="Wall Repair")
+
+    def test_craftsman_can_create_service_listing(self):
+        self.client.force_login(self.craftsman)
+        image = SimpleUploadedFile(
+            "work-sample.jpg",
+            b"fake-image-content",
+            content_type="image/jpeg",
+        )
+
+        response = self.client.post(
+            reverse("craftsmen:service_listing_create"),
+            data={
+                "title": "Wall crack repair",
+                "description": "Repair and smooth cracked interior walls.",
+                "rough_price": "150.00",
+                "category": self.category.pk,
+                "skills": [self.skill.pk],
+                "images": [image],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        listing = ServiceListing.objects.get(title="Wall crack repair")
+        self.assertEqual(listing.craftsman, self.craftsman)
+        self.assertEqual(listing.images.count(), 1)
+
+    def test_client_cannot_create_service_listing(self):
+        self.client.force_login(self.client_user)
+
+        response = self.client.post(
+            reverse("craftsmen:service_listing_create"),
+            data={
+                "title": "Should be blocked",
+                "description": "Blocked for clients.",
+                "rough_price": "100.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(ServiceListing.objects.filter(title="Should be blocked").exists())
+
+    def test_service_listing_is_public(self):
+        listing = ServiceListing.objects.create(
+            craftsman=self.craftsman,
+            title="Tile replacement",
+            description="Replace broken tiles and refresh grout.",
+            rough_price="200.00",
+            category=self.category,
+        )
+
+        response = self.client.get(reverse("craftsmen:service_listing_detail", kwargs={"pk": listing.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tile replacement")

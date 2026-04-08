@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Service Listings{% endblock %}
+
+{% block content %}
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">Service Listings</h1>
+            <p class="text-secondary mb-0">Public offers published by craftsmen.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for service_listing in service_listings %}
+        <div class="col-12 col-md-6">
+            <article class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h4 mb-2">
+                        <a class="text-decoration-none" href="{% url 'craftsmen:service_listing_detail' service_listing.pk %}">
+                            {{ service_listing.title }}
+                        </a>
+                    </h2>
+                    <p class="text-secondary mb-2">{{ service_listing.description|truncatewords:24 }}</p>
+                    <p class="mb-2"><strong>Craftsman:</strong> {{ service_listing.craftsman }}</p>
+                    <p class="mb-2"><strong>Starting price:</strong> {{ service_listing.rough_price }}</p>
+                    <p class="mb-0"><strong>Category:</strong> {{ service_listing.category.name|default:"-" }}</p>
+                </div>
+            </article>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-light border mb-0">No service listings available yet.</div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
