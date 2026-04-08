@@ -3,20 +3,84 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.validators import RegexValidator
 
 from .models import CustomerAccount, User
+from .signals import CRAFTSMEN_GROUP, CLIENTS_GROUP
 
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
+    role = forms.ChoiceField(
+        label="I am",
+        required=True,
+        choices=(
+            ("", "Choose an option"),
+            ("craftsman", "I am a craftsman"),
+            ("client", "I am looking for a craftsman"),
+        ),
+        error_messages={
+            "required": "Please choose how you want to use Maistorly.",
+            "invalid_choice": "Please choose a valid registration option.",
+        },
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+    )
+
+    ROLE_TO_GROUP = {
+        "craftsman": CRAFTSMEN_GROUP,
+        "client": CLIENTS_GROUP,
+    }
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ("username", "email", "password1", "password2")
+        fields = ("username", "email", "role", "password1", "password2")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["username"].label = "Username"
+        self.fields["username"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Choose a username"}
+        )
+        self.fields["username"].error_messages["required"] = "Please enter a username."
+
+        self.fields["email"].label = "Email address"
+        self.fields["email"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Enter your email address"}
+        )
+        self.fields["email"].error_messages["required"] = "Please enter an email address."
+        self.fields["email"].error_messages["invalid"] = "Enter a valid email address."
+
+        self.fields["password1"].label = "Password"
+        self.fields["password1"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Create a password"}
+        )
+        self.fields["password1"].error_messages["required"] = "Please create a password."
+
+        self.fields["password2"].label = "Confirm password"
+        self.fields["password2"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Repeat your password"}
+        )
+        self.fields["password2"].error_messages["required"] = "Please confirm your password."
+        self.fields["password2"].error_messages[
+            "password_mismatch"
+        ] = "The two password fields didn’t match."
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("A user with this email already exists.")
         return email
+
+    def clean_role(self):
+        role = self.cleaned_data["role"]
+        if role not in self.ROLE_TO_GROUP:
+            raise forms.ValidationError("Please choose a valid registration option.")
+        return role
+
+    def get_group_name(self):
+        return self.ROLE_TO_GROUP[self.cleaned_data["role"]]
 
     def save(self, commit=True):
         user = super().save(commit=False)

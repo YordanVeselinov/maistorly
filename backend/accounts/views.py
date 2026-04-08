@@ -8,7 +8,6 @@ from django.views.generic import CreateView, TemplateView, UpdateView
 
 from .forms import CustomerAccountForm, EmailAuthenticationForm, RegisterForm
 from .models import CustomerAccount
-from .signals import CLIENTS_GROUP
 
 
 class HomeView(TemplateView):
@@ -22,8 +21,9 @@ class RegisterView(CreateView):
 
     def form_valid(self, form):
         self.object = form.save()
-        client_group, _ = Group.objects.get_or_create(name=CLIENTS_GROUP)
-        self.object.groups.add(client_group)
+        selected_group_name = form.get_group_name()
+        selected_group, _ = Group.objects.get_or_create(name=selected_group_name)
+        self.object.groups.add(selected_group)
         CustomerAccount.objects.get_or_create(user=self.object)
         login(self.request, self.object, backend="accounts.backends.EmailBackend")
         return redirect(self.get_success_url())

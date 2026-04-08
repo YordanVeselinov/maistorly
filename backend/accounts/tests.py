@@ -5,12 +5,13 @@ from .models import CustomerAccount, User
 
 
 class RegisterViewTests(TestCase):
-    def test_register_assigns_clients_group_by_default(self):
+    def test_register_assigns_clients_group_for_client_selection(self):
         response = self.client.post(
             reverse("accounts:register"),
             data={
                 "username": "newclient",
                 "email": "newclient@example.com",
+                "role": "client",
                 "password1": "StrongPass12345!",
                 "password2": "StrongPass12345!",
             },
@@ -20,6 +21,24 @@ class RegisterViewTests(TestCase):
         user = User.objects.get(username="newclient")
         self.assertTrue(user.groups.filter(name="Clients").exists())
         self.assertFalse(user.groups.filter(name="Craftsmen").exists())
+        self.assertTrue(CustomerAccount.objects.filter(user=user).exists())
+
+    def test_register_assigns_craftsmen_group_for_craftsman_selection(self):
+        response = self.client.post(
+            reverse("accounts:register"),
+            data={
+                "username": "newcraftsman",
+                "email": "newcraftsman@example.com",
+                "role": "craftsman",
+                "password1": "StrongPass12345!",
+                "password2": "StrongPass12345!",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username="newcraftsman")
+        self.assertTrue(user.groups.filter(name="Craftsmen").exists())
+        self.assertFalse(user.groups.filter(name="Clients").exists())
         self.assertTrue(CustomerAccount.objects.filter(user=user).exists())
 
     def test_register_page_renders(self):
@@ -32,6 +51,7 @@ class RegisterViewTests(TestCase):
             data={
                 "username": "autologin",
                 "email": "autologin@example.com",
+                "role": "client",
                 "password1": "StrongPass12345!",
                 "password2": "StrongPass12345!",
             },
@@ -54,6 +74,7 @@ class RegisterViewTests(TestCase):
             data={
                 "username": "newclient",
                 "email": "existing@example.com",
+                "role": "client",
                 "password1": "StrongPass12345!",
                 "password2": "StrongPass12345!",
             },
@@ -61,6 +82,21 @@ class RegisterViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "A user with this email already exists.")
+
+    def test_register_requires_role_selection(self):
+        response = self.client.post(
+            reverse("accounts:register"),
+            data={
+                "username": "noroleuser",
+                "email": "norole@example.com",
+                "role": "",
+                "password1": "StrongPass12345!",
+                "password2": "StrongPass12345!",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Please choose how you want to use Maistorly.")
 
 
 class ProfileViewTests(TestCase):
