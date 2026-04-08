@@ -61,6 +61,13 @@ class ServiceListingViewTests(TestCase):
 
         self.category = Category.objects.create(name="Plastering")
         self.skill = Skill.objects.create(category=self.category, name="Wall Repair")
+        self.listing = ServiceListing.objects.create(
+            craftsman=self.craftsman,
+            title="Tile replacement",
+            description="Replace broken tiles and refresh grout.",
+            rough_price="200.00",
+            category=self.category,
+        )
 
     def test_craftsman_can_create_service_listing(self):
         self.client.force_login(self.craftsman)
@@ -102,16 +109,34 @@ class ServiceListingViewTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertFalse(ServiceListing.objects.filter(title="Should be blocked").exists())
 
-    def test_service_listing_is_public(self):
-        listing = ServiceListing.objects.create(
-            craftsman=self.craftsman,
-            title="Tile replacement",
-            description="Replace broken tiles and refresh grout.",
-            rough_price="200.00",
-            category=self.category,
-        )
-
-        response = self.client.get(reverse("craftsmen:service_listing_detail", kwargs={"pk": listing.pk}))
+    def test_anonymous_user_can_access_service_listing_marketplace(self):
+        response = self.client.get(reverse("craftsmen:service_listing_list"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Tile replacement")
+
+    def test_non_craftsman_user_can_access_service_listing_detail(self):
+        self.client.force_login(self.client_user)
+
+        response = self.client.get(
+            reverse("craftsmen:service_listing_detail", kwargs={"pk": self.listing.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tile replacement")
+
+    def test_craftsman_cannot_access_public_service_listing_marketplace(self):
+        self.client.force_login(self.craftsman)
+
+        response = self.client.get(reverse("craftsmen:service_listing_list"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_craftsman_cannot_access_public_service_listing_detail(self):
+        self.client.force_login(self.craftsman)
+
+        response = self.client.get(
+            reverse("craftsmen:service_listing_detail", kwargs={"pk": self.listing.pk})
+        )
+
+        self.assertEqual(response.status_code, 403)

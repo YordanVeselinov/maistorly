@@ -16,6 +16,17 @@ class CraftsmanGroupRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.groups.filter(name=CRAFTSMEN_GROUP).exists()
 
 
+class NonCraftsmanOrAnonymousRequiredMixin(UserPassesTestMixin):
+    raise_exception = True
+
+    def test_func(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return True
+
+        return not user.groups.filter(name=CRAFTSMEN_GROUP).exists()
+
+
 class CraftsmanListView(ListView):
     model = CraftsmanProfile
     template_name = "craftsmen/craftsman_list.html"
@@ -75,7 +86,7 @@ class ServiceListingImageUploadMixin:
             ServiceListingImage.objects.create(listing=listing, image=image_file)
 
 
-class ServiceListingListView(ListView):
+class ServiceListingListView(NonCraftsmanOrAnonymousRequiredMixin, ListView):
     model = ServiceListing
     template_name = "craftsmen/service_listing_list.html"
     context_object_name = "service_listings"
@@ -87,7 +98,7 @@ class ServiceListingListView(ListView):
         )
 
 
-class ServiceListingDetailView(DetailView):
+class ServiceListingDetailView(NonCraftsmanOrAnonymousRequiredMixin, DetailView):
     model = ServiceListing
     template_name = "craftsmen/service_listing_detail.html"
     context_object_name = "service_listing"
@@ -97,13 +108,6 @@ class ServiceListingDetailView(DetailView):
             "skills",
             "images",
         )
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["is_owner"] = (
-            self.request.user.is_authenticated and self.request.user == self.object.craftsman
-        )
-        return context
 
 
 class ServiceListingCreateView(CraftsmanGroupRequiredMixin, ServiceListingImageUploadMixin, CreateView):
@@ -118,7 +122,7 @@ class ServiceListingCreateView(CraftsmanGroupRequiredMixin, ServiceListingImageU
         return response
 
     def get_success_url(self):
-        return reverse("craftsmen:service_listing_detail", kwargs={"pk": self.object.pk})
+        return reverse("craftsmen:my_service_listings")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -144,7 +148,7 @@ class ServiceListingUpdateView(CraftsmanGroupRequiredMixin, ServiceListingImageU
         return response
 
     def get_success_url(self):
-        return reverse("craftsmen:service_listing_detail", kwargs={"pk": self.object.pk})
+        return reverse("craftsmen:my_service_listings")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

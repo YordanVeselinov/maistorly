@@ -33,7 +33,18 @@ class CraftsmanRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.groups.filter(name=CRAFTSMEN_GROUP).exists()
 
 
-class JobRequestListView(ListView):
+class JobRequestViewerRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    raise_exception = True
+
+    def test_func(self):
+        user = self.request.user
+        if user.groups.filter(name=CRAFTSMEN_GROUP).exists():
+            return True
+
+        return self.get_object().owner == user
+
+
+class JobRequestListView(CraftsmanRequiredMixin, ListView):
     model = JobRequest
     template_name = "jobs/job_list.html"
     context_object_name = "job_requests"
@@ -80,7 +91,7 @@ class JobRequestListView(ListView):
         return context
 
 
-class JobRequestDetailView(DetailView):
+class JobRequestDetailView(JobRequestViewerRequiredMixin, DetailView):
     model = JobRequest
     template_name = "jobs/job_detail.html"
     context_object_name = "job_request"
@@ -132,6 +143,11 @@ class JobRequestDetailView(DetailView):
             }
             for offer in offers
         ]
+        context["back_to_jobs_url"] = (
+            reverse("jobs:my_jobs")
+            if is_owner
+            else reverse("jobs:job_list")
+        )
         return context
 
 
@@ -217,7 +233,7 @@ class JobRequestDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return context
 
 
-class MyJobRequestListView(LoginRequiredMixin, ListView):
+class MyJobRequestListView(ClientRequiredMixin, ListView):
     model = JobRequest
     template_name = "jobs/my_jobs.html"
     context_object_name = "job_requests"
@@ -259,8 +275,8 @@ class OfferCreateView(CraftsmanRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["job_request"] = self.job_request
-        context["page_title"] = "Submit Offer"
-        context["submit_label"] = "Submit offer"
+        context["page_title"] = "Submit Counter-Offer"
+        context["submit_label"] = "Submit counter-offer"
         return context
 
 

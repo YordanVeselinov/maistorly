@@ -66,8 +66,14 @@ class JobRequestViewTests(TestCase):
             email="other@example.com",
             password="StrongPass12345!",
         )
+        self.craftsman_user = User.objects.create_user(
+            username="viewer_craftsman",
+            email="viewer_craftsman@example.com",
+            password="StrongPass12345!",
+        )
         self.owner.groups.add(self.clients_group)
         self.other_user.groups.add(self.clients_group)
+        self.craftsman_user.groups.add(self.craftsmen_group)
         self.category = Category.objects.create(name="Electrical")
         self.skill = Skill.objects.create(category=self.category, name="Wiring")
         self.job_request = JobRequest.objects.create(
@@ -102,6 +108,47 @@ class JobRequestViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         job_request = JobRequest.objects.get(title="Install faucet")
         self.assertEqual(job_request.owner, self.other_user)
+
+    def test_anonymous_user_cannot_access_job_request_list(self):
+        response = self.client.get(reverse("jobs:job_list"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_client_cannot_access_job_request_list(self):
+        self.client.force_login(self.other_user)
+
+        response = self.client.get(reverse("jobs:job_list"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_craftsman_can_access_job_request_list(self):
+        self.client.force_login(self.craftsman_user)
+
+        response = self.client.get(reverse("jobs:job_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Fix light")
+
+    def test_owner_can_access_own_job_request_detail(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk}))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_non_owner_client_cannot_access_job_request_detail(self):
+        self.client.force_login(self.other_user)
+
+        response = self.client.get(reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk}))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_craftsman_can_access_job_request_detail(self):
+        self.client.force_login(self.craftsman_user)
+
+        response = self.client.get(reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk}))
+
+        self.assertEqual(response.status_code, 200)
 
     def test_craftsman_cannot_create_job_request(self):
         craftsman = User.objects.create_user(
@@ -214,6 +261,24 @@ class OfferViewTests(TestCase):
         self.assertEqual(offer.proposed_price, 140)
         mocked_delay.assert_called_once_with(offer.pk)
 
+    @patch("jobs.views.send_offer_notification_email.delay")
+    def test_craftsman_can_create_offer_without_estimated_days(self, mocked_delay):
+        self.client.force_login(self.craftsman)
+
+        response = self.client.post(
+            reverse("jobs:offer_create", kwargs={"pk": self.job_request.pk}),
+            data={
+                "message": "I can start next week.",
+                "proposed_price": "160.00",
+                "estimated_days": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        offer = Offer.objects.get(job_request=self.job_request, craftsman=self.craftsman)
+        self.assertIsNone(offer.estimated_days)
+        mocked_delay.assert_called_once_with(offer.pk)
+
     def test_only_craftsmen_can_create_offers(self):
         self.client.force_login(self.client_user)
 
@@ -239,6 +304,25 @@ class OfferViewTests(TestCase):
         self.assertContains(response, "You cannot submit an offer for your own job request.")
         self.assertFalse(Offer.objects.filter(job_request=self.job_request, craftsman=self.owner).exists())
 
+    def test_only_job_owner_sees_received_offers_in_job_detail(self):
+        Offer.objects.create(
+            job_request=self.job_request,
+            craftsman=self.craftsman,
+            message="Counter-offer message",
+            proposed_price="130.00",
+            estimated_days=2,
+        )
+
+        self.client.force_login(self.owner)
+        owner_response = self.client.get(reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk}))
+        self.assertContains(owner_response, "Received Counter-Offers")
+        self.assertContains(owner_response, "Counter-offer message")
+
+        self.client.force_login(self.craftsman)
+        craftsman_response = self.client.get(reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk}))
+        self.assertNotContains(craftsman_response, "Received Counter-Offers")
+        self.assertNotContains(craftsman_response, "Counter-offer message")
+
 
 class JobApiTests(TestCase):
     def setUp(self):
@@ -249,7 +333,19 @@ class JobApiTests(TestCase):
             email="apiowner@example.com",
             password="StrongPass12345!",
         )
+        self.craftsman = User.objects.create_user(
+            username="apiviewcraftsman",
+            email="apiviewcraftsman@example.com",
+            password="StrongPass12345!",
+        )
+        self.other_client = User.objects.create_user(
+            username="apiotherclient",
+            email="apiotherclient@example.com",
+            password="StrongPass12345!",
+        )
         self.owner.groups.add(self.clients_group)
+        self.other_client.groups.add(self.clients_group)
+        self.craftsman.groups.add(self.craftsmen_group)
         self.category = Category.objects.create(name="Painting")
         self.skill = Skill.objects.create(category=self.category, name="Interior Painting")
         self.job_request = JobRequest.objects.create(
@@ -264,7 +360,14 @@ class JobApiTests(TestCase):
         self.job_request.categories.add(self.category)
         self.job_request.required_skills.add(self.skill)
 
-    def test_jobs_list_api_returns_public_data(self):
+    def test_jobs_list_api_requires_craftsman_role(self):
+        response = self.client.get(reverse("api-job-list"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_craftsman_can_list_jobs_via_api(self):
+        self.client.force_login(self.craftsman)
+
         response = self.client.get(reverse("api-job-list"))
 
         self.assertEqual(response.status_code, 200)
@@ -331,5 +434,20 @@ class JobApiTests(TestCase):
             },
             content_type="application/json",
         )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_job_owner_can_access_job_detail_via_api(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("api-job-detail", kwargs={"pk": self.job_request.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["title"], "Paint bedroom")
+
+    def test_non_owner_non_craftsman_cannot_access_job_detail_via_api(self):
+        self.client.force_login(self.other_client)
+
+        response = self.client.get(reverse("api-job-detail", kwargs={"pk": self.job_request.pk}))
 
         self.assertEqual(response.status_code, 403)

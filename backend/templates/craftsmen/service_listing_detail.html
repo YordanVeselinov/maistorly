@@ -47,10 +47,6 @@
         {% endif %}
 
         <div class="d-flex flex-wrap gap-2">
-            {% if is_owner %}
-            <a class="btn btn-outline-primary" href="{% url 'craftsmen:service_listing_update' service_listing.pk %}">Edit service listing</a>
-            <a class="btn btn-outline-danger" href="{% url 'craftsmen:service_listing_delete' service_listing.pk %}">Delete service listing</a>
-            {% endif %}
             <a class="btn btn-outline-secondary" href="{% url 'craftsmen:service_listing_list' %}">Back to listings</a>
         </div>
     </div>

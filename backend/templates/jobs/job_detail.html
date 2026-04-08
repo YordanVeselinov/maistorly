@@ -63,9 +63,9 @@
             <a class="btn btn-outline-danger" href="{% url 'jobs:job_delete' job_request.pk %}">Delete job request</a>
             {% endif %}
             {% if can_create_offer %}
-            <a class="btn btn-primary" href="{% url 'jobs:offer_create' job_request.pk %}">Submit offer</a>
+            <a class="btn btn-primary" href="{% url 'jobs:offer_create' job_request.pk %}">Send counter-offer</a>
             {% endif %}
-            <a class="btn btn-outline-secondary" href="{% url 'jobs:job_list' %}">Back to jobs</a>
+            <a class="btn btn-outline-secondary" href="{{ back_to_jobs_url }}">Back</a>
         </div>
     </div>
 </div>
@@ -73,7 +73,7 @@
 {% if is_owner %}
 <section>
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h3 mb-0">Offers</h2>
+        <h2 class="h3 mb-0">Received Counter-Offers</h2>
     </div>
     <div class="row g-4">
     {% if offer_entries %}
@@ -93,7 +93,7 @@
                     </div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-4"><strong>Proposed price:</strong> {{ offer.proposed_price|currency_bgn }}</div>
-                        <div class="col-md-4"><strong>Estimated days:</strong> {{ offer.estimated_days }}</div>
+                        <div class="col-md-4"><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
                         {% if craftsman_profile %}

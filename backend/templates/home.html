@@ -11,7 +11,12 @@
             <h1 class="display-5 fw-bold mb-3">Find reliable craftsmen or post your next home repair job.</h1>
             <p class="lead text-secondary mb-4">Maistorly connects customers with skilled local professionals for repairs, maintenance, and specialist home services.</p>
             <div class="d-flex flex-wrap gap-2">
+                {% if request.user.is_authenticated and request.user|has_group:"Craftsmen" %}
                 <a class="btn btn-primary" href="{% url 'jobs:job_list' %}">Browse Jobs</a>
+                {% endif %}
+                {% if not request.user.is_authenticated or not request.user|has_group:"Craftsmen" %}
+                <a class="btn btn-primary" href="{% url 'craftsmen:service_listing_list' %}">Browse Services</a>
+                {% endif %}
                 <a class="btn btn-outline-secondary" href="{% url 'craftsmen:craftsman_list' %}">Browse Craftsmen</a>
             </div>
         </div>

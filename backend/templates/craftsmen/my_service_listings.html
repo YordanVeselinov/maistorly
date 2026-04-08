@@ -22,7 +22,6 @@
                     <p class="mb-2"><strong>Starting price:</strong> {{ service_listing.rough_price }}</p>
                     <p class="mb-3"><strong>Category:</strong> {{ service_listing.category.name|default:"-" }}</p>
                     <div class="d-flex flex-wrap gap-2">
-                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'craftsmen:service_listing_detail' service_listing.pk %}">View</a>
                         <a class="btn btn-sm btn-outline-primary" href="{% url 'craftsmen:service_listing_update' service_listing.pk %}">Edit</a>
                         <a class="btn btn-sm btn-outline-danger" href="{% url 'craftsmen:service_listing_delete' service_listing.pk %}">Delete</a>
                     </div>

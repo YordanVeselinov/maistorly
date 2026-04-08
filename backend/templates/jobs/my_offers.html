@@ -24,7 +24,7 @@
                 </div>
                 <div class="row g-3 mb-3">
                     <div class="col-md-4"><strong>Proposed price:</strong> {{ offer.proposed_price|currency_bgn }}</div>
-                    <div class="col-md-4"><strong>Estimated days:</strong> {{ offer.estimated_days }}</div>
+                    <div class="col-md-4"><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
                 </div>
                 <p class="mb-3">{{ offer.message }}</p>
                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'jobs:job_detail' offer.job_request.pk %}">View job request</a>

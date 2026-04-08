@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions
 
-from accounts.signals import CLIENTS_GROUP
+from accounts.signals import CLIENTS_GROUP, CRAFTSMEN_GROUP
 
 from .models import JobRequest
 from .serializers import JobRequestSerializer
@@ -13,6 +13,29 @@ class IsClientUser(permissions.BasePermission):
             user
             and user.is_authenticated
             and user.groups.filter(name=CLIENTS_GROUP).exists()
+        )
+
+
+class IsCraftsmanUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and user.groups.filter(name=CRAFTSMEN_GROUP).exists()
+        )
+
+
+class IsCraftsmanOrJobOwner(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(user and user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        return bool(
+            user.groups.filter(name=CRAFTSMEN_GROUP).exists()
+            or obj.owner_id == user.id
         )
 
 
@@ -45,7 +68,7 @@ class JobRequestListCreateAPIView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == "POST":
             return [IsClientUser()]
-        return [permissions.AllowAny()]
+        return [IsCraftsmanUser()]
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -59,4 +82,4 @@ class JobRequestDetailAPIView(generics.RetrieveAPIView):
         "offers__craftsman",
     )
     serializer_class = JobRequestSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsCraftsmanOrJobOwner]

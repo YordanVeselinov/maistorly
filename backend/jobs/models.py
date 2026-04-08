@@ -135,7 +135,10 @@ class Offer(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)],
     )
-    estimated_days = models.PositiveIntegerField()
+    estimated_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,

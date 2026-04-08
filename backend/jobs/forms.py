@@ -267,14 +267,14 @@ class OfferCreateForm(forms.ModelForm):
             "estimated_days",
         )
         labels = {
-            "message": "Offer message",
+            "message": "Counter-offer message",
             "proposed_price": "Proposed price",
-            "estimated_days": "Estimated days",
+            "estimated_days": "Estimated days (optional)",
         }
         help_texts = {
             "message": "Briefly explain your approach, availability, and any relevant experience.",
             "proposed_price": "Enter the total price you propose for completing the job.",
-            "estimated_days": "Enter how many days you expect the job to take.",
+            "estimated_days": "Optional. Enter how many days you expect the job to take.",
         }
         error_messages = {
             "message": {
@@ -284,7 +284,6 @@ class OfferCreateForm(forms.ModelForm):
                 "required": "Please enter your proposed price.",
             },
             "estimated_days": {
-                "required": "Please enter the estimated number of days.",
                 "invalid": "Enter a valid number of estimated days.",
             },
         }
@@ -307,7 +306,7 @@ class OfferCreateForm(forms.ModelForm):
             "estimated_days": forms.NumberInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "2",
+                    "placeholder": "2 (optional)",
                     "min": "1",
                 }
             ),
@@ -329,7 +328,10 @@ class OfferCreateForm(forms.ModelForm):
 
     def clean_estimated_days(self):
         estimated_days = self.cleaned_data.get("estimated_days")
-        if estimated_days is not None and estimated_days < 1:
+        if estimated_days is None:
+            return None
+
+        if estimated_days < 1:
             raise forms.ValidationError("Estimated days must be at least 1.")
         return estimated_days
 

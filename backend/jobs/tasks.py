@@ -25,7 +25,7 @@ def send_offer_notification_email(offer_id):
             f"You have received a new offer for your job request \"{offer.job_request.title}\".\n\n"
             f"Craftsman: {offer.craftsman.get_username()}\n"
             f"Proposed price: {offer.proposed_price}\n"
-            f"Estimated days: {offer.estimated_days}\n\n"
+            f"Estimated days: {offer.estimated_days if offer.estimated_days is not None else 'Not specified'}\n\n"
             f"Message:\n{offer.message}"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
