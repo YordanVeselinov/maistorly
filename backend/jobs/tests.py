@@ -323,6 +323,29 @@ class OfferViewTests(TestCase):
         self.assertNotContains(craftsman_response, "Received Counter-Offers")
         self.assertNotContains(craftsman_response, "Counter-offer message")
 
+    def test_job_owner_can_access_my_received_offers_page(self):
+        Offer.objects.create(
+            job_request=self.job_request,
+            craftsman=self.craftsman,
+            message="Counter-offer message",
+            proposed_price="130.00",
+            estimated_days=2,
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("jobs:my_received_offers"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "My Received Offers")
+        self.assertContains(response, "Counter-offer message")
+
+    def test_craftsman_cannot_access_my_received_offers_page(self):
+        self.client.force_login(self.craftsman)
+
+        response = self.client.get(reverse("jobs:my_received_offers"))
+
+        self.assertEqual(response.status_code, 403)
+
 
 class JobApiTests(TestCase):
     def setUp(self):

@@ -15,55 +15,49 @@
                         <i class="bi bi-house-door me-1"></i>Home
                     </a>
                 </li>
-                {% if request.user.is_authenticated and request.user|has_group:"Craftsmen" %}
-                    <li class="nav-item">
-                        <a class="nav-link{% if request.resolver_match.app_name == 'jobs' and request.resolver_match.url_name != 'my_jobs' and request.resolver_match.url_name != 'my_offers' %} active{% endif %}" href="{% url 'jobs:job_list' %}">
-                            <i class="bi bi-briefcase me-1"></i>Jobs
-                        </a>
-                    </li>
-                {% endif %}
-                {% if request.user.is_authenticated and request.user|has_group:"Clients" %}
+                {% if not request.user.is_authenticated %}
                 <li class="nav-item">
-                    <a class="nav-link{% if request.resolver_match.app_name == 'jobs' and request.resolver_match.url_name == 'my_jobs' %} active{% endif %}" href="{% url 'jobs:my_jobs' %}">
-                        <i class="bi bi-folder2-open me-1"></i>My Jobs
+                    <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name == 'service_listing_list' %} active{% endif %}" href="{% url 'craftsmen:service_listing_list' %}">
+                        <i class="bi bi-briefcase me-1"></i>Craftsmen Services
                     </a>
                 </li>
-                {% endif %}
-                {% if request.user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name != 'profile_edit' %} active{% endif %}" href="{% url 'craftsmen:craftsman_list' %}">
-                            <i class="bi bi-people me-1"></i>Craftsmen
-                        </a>
-                    </li>
-                {% endif %}
-                {% if not request.user.is_authenticated or not request.user|has_group:"Craftsmen" %}
-                    <li class="nav-item">
-                        <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name == 'service_listing_list' %} active{% endif %}" href="{% url 'craftsmen:service_listing_list' %}">
-                            <i class="bi bi-briefcase me-1"></i>Services
-                        </a>
-                    </li>
+                {% elif request.user|has_group:"Clients" %}
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name == 'service_listing_list' %} active{% endif %}" href="{% url 'craftsmen:service_listing_list' %}">
+                        <i class="bi bi-search me-1"></i>Browse Craftsmen Services
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.app_name == 'jobs' and request.resolver_match.url_name == 'my_jobs' %} active{% endif %}" href="{% url 'jobs:my_jobs' %}">
+                        <i class="bi bi-folder2-open me-1"></i>My Requests
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.app_name == 'jobs' and request.resolver_match.url_name == 'my_received_offers' %} active{% endif %}" href="{% url 'jobs:my_received_offers' %}">
+                        <i class="bi bi-inbox me-1"></i>My Received Offers
+                    </a>
+                </li>
+                {% elif request.user|has_group:"Craftsmen" %}
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name == 'my_service_listings' %} active{% endif %}" href="{% url 'craftsmen:my_service_listings' %}">
+                        <i class="bi bi-list-check me-1"></i>My Service Listings
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.app_name == 'jobs' and request.resolver_match.url_name == 'job_list' %} active{% endif %}" href="{% url 'jobs:job_list' %}">
+                        <i class="bi bi-briefcase me-1"></i>Customer Requests
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if request.resolver_match.app_name == 'jobs' and request.resolver_match.url_name == 'my_offers' %} active{% endif %}" href="{% url 'jobs:my_offers' %}">
+                        <i class="bi bi-send-check me-1"></i>My Sent Offers
+                    </a>
+                </li>
                 {% endif %}
             </ul>
 
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
                 {% if request.user.is_authenticated %}
-                    {% if request.user|has_group:"Craftsmen" %}
-                    <li class="nav-item">
-                        <a class="nav-link{% if request.resolver_match.app_name == 'jobs' and request.resolver_match.url_name == 'my_offers' %} active{% endif %}" href="{% url 'jobs:my_offers' %}">
-                            <i class="bi bi-send-check me-1"></i>My Offers
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name == 'my_service_listings' %} active{% endif %}" href="{% url 'craftsmen:my_service_listings' %}">
-                            <i class="bi bi-list-check me-1"></i>My Services
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link{% if request.resolver_match.app_name == 'craftsmen' and request.resolver_match.url_name == 'profile_edit' %} active{% endif %}" href="{% url 'craftsmen:profile_edit' request.user.pk %}">
-                            <i class="bi bi-person-badge me-1"></i>Craftsman Profile
-                        </a>
-                    </li>
-                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link{% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'profile' %} active{% endif %}" href="{% url 'accounts:profile' %}">
                             <i class="bi bi-person-circle me-1"></i>Profile
@@ -79,13 +73,13 @@
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link{% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'register' %} active{% endif %}" href="{% url 'accounts:register' %}">
-                            <i class="bi bi-person-plus me-1"></i>Register
+                        <a class="nav-link{% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'login' %} active{% endif %}" href="{% url 'accounts:login' %}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary btn-sm ms-lg-2" href="{% url 'accounts:login' %}">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                        <a class="btn btn-primary btn-sm ms-lg-2{% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'register' %} active{% endif %}" href="{% url 'accounts:register' %}">
+                            <i class="bi bi-person-plus me-1"></i>Register
                         </a>
                     </li>
                 {% endif %}

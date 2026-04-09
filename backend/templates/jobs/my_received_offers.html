@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load maistorly_tags %}
+
+{% block title %}My Received Offers{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <span class="badge text-bg-primary mb-2">Client Flow</span>
+    <h1 class="mb-1">My Received Offers</h1>
+    <p class="text-secondary mb-0">Review counter-offers submitted by craftsmen for your customer requests.</p>
+</div>
+
+<div class="row g-4">
+{% if offers %}
+    {% for offer in offers %}
+    <div class="col-12">
+        <article class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                    <div>
+                        <h2 class="h4 mb-1">
+                            <a class="text-decoration-none" href="{% url 'jobs:job_detail' offer.job_request.pk %}">
+                                {{ offer.job_request.title }}
+                            </a>
+                        </h2>
+                        <p class="text-secondary mb-0">Craftsman: {{ offer.craftsman }}</p>
+                    </div>
+                    <span class="badge rounded-pill align-self-start {{ offer.status|status_badge_class }}">{{ offer.get_status_display }}</span>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4"><strong>Proposed price:</strong> {{ offer.proposed_price|currency_bgn }}</div>
+                    <div class="col-md-4"><strong>Estimated time:</strong> {{ offer.estimated_days|default:"Not specified" }}{% if offer.estimated_days %} days{% endif %}</div>
+                </div>
+                <p class="mb-3">{{ offer.message }}</p>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'jobs:job_detail' offer.job_request.pk %}">Open customer request</a>
+            </div>
+        </article>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="col-12">
+        <div class="alert alert-light border mb-0">No received offers yet for your customer requests.</div>
+    </div>
+{% endif %}
+</div>
+{% endblock %}

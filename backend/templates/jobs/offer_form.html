@@ -7,8 +7,9 @@
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4 p-lg-5">
             <div class="mb-4">
+                <span class="badge text-bg-warning mb-2">Craftsman Flow</span>
                 <h1 class="h3 mb-2">{{ page_title }}</h1>
-                <p class="text-secondary mb-0">Job request: <a href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></p>
+                <p class="text-secondary mb-0">Customer request: <a href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></p>
             </div>
             <form method="post" novalidate>
                 {% csrf_token %}

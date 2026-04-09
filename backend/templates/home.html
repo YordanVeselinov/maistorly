@@ -7,17 +7,34 @@
 <section class="py-4 py-lg-5">
     <div class="row align-items-center g-4">
         <div class="col-lg-7">
+            {% if request.user.is_authenticated and request.user|has_group:"Craftsmen" %}
+            <span class="badge rounded-pill text-bg-warning-subtle border mb-3">Craftsman Flow</span>
+            <h1 class="display-5 fw-bold mb-3">Publish your service listings and respond to customer requests.</h1>
+            <p class="lead text-secondary mb-4">Your service listings present what you can do, while customer requests describe work clients need done.</p>
+            {% elif request.user.is_authenticated and request.user|has_group:"Clients" %}
+            <span class="badge rounded-pill text-bg-primary-subtle border mb-3">Client Flow</span>
+            <h1 class="display-5 fw-bold mb-3">Browse craftsmen services and manage your own requests.</h1>
+            <p class="lead text-secondary mb-4">Service listings are published by craftsmen. Customer requests are separate posts created by clients.</p>
+            {% else %}
             <span class="badge rounded-pill text-bg-light border mb-3">Home Repair Marketplace</span>
-            <h1 class="display-5 fw-bold mb-3">Find reliable craftsmen or post your next home repair job.</h1>
-            <p class="lead text-secondary mb-4">Maistorly connects customers with skilled local professionals for repairs, maintenance, and specialist home services.</p>
+            <h1 class="display-5 fw-bold mb-3">Find craftsmen services for your next home project.</h1>
+            <p class="lead text-secondary mb-4">Browse public services published by craftsmen, then register to create your own customer requests.</p>
+            {% endif %}
             <div class="d-flex flex-wrap gap-2">
                 {% if request.user.is_authenticated and request.user|has_group:"Craftsmen" %}
-                <a class="btn btn-primary" href="{% url 'jobs:job_list' %}">Browse Jobs</a>
+                <a class="btn btn-primary" href="{% url 'craftsmen:my_service_listings' %}">My Service Listings</a>
+                <a class="btn btn-outline-secondary" href="{% url 'jobs:job_list' %}">Customer Requests</a>
                 {% endif %}
-                {% if not request.user.is_authenticated or not request.user|has_group:"Craftsmen" %}
-                <a class="btn btn-primary" href="{% url 'craftsmen:service_listing_list' %}">Browse Services</a>
+                {% if request.user.is_authenticated and request.user|has_group:"Clients" %}
+                <a class="btn btn-primary" href="{% url 'craftsmen:service_listing_list' %}">Browse Craftsmen Services</a>
+                <a class="btn btn-outline-secondary" href="{% url 'jobs:my_jobs' %}">My Requests</a>
                 {% endif %}
+                {% if not request.user.is_authenticated %}
+                <a class="btn btn-primary" href="{% url 'craftsmen:service_listing_list' %}">Craftsmen Services</a>
+                {% endif %}
+                {% if request.user.is_authenticated and request.user|has_group:"Clients" %}
                 <a class="btn btn-outline-secondary" href="{% url 'craftsmen:craftsman_list' %}">Browse Craftsmen</a>
+                {% endif %}
             </div>
         </div>
         <div class="col-lg-5">
@@ -27,17 +44,21 @@
                     <div class="d-grid gap-2">
                         {% if request.user.is_authenticated %}
                         {% if request.user|has_group:"Clients" %}
-                        <a class="btn btn-outline-primary" href="{% url 'jobs:job_create' %}">Create Job Request</a>
-                        <a class="btn btn-outline-primary" href="{% url 'jobs:my_jobs' %}">Manage My Jobs</a>
+                        <a class="btn btn-outline-primary" href="{% url 'jobs:job_create' %}">Create Customer Request</a>
+                        <a class="btn btn-outline-primary" href="{% url 'jobs:my_jobs' %}">My Requests</a>
+                        <a class="btn btn-outline-primary" href="{% url 'jobs:my_received_offers' %}">My Received Offers</a>
                         {% endif %}
                         {% if request.user|has_group:"Craftsmen" %}
                         <a class="btn btn-outline-primary" href="{% url 'craftsmen:service_listing_create' %}">Create Service Listing</a>
-                        <a class="btn btn-outline-primary" href="{% url 'craftsmen:my_service_listings' %}">Manage My Services</a>
+                        <a class="btn btn-outline-primary" href="{% url 'craftsmen:my_service_listings' %}">My Service Listings</a>
+                        <a class="btn btn-outline-primary" href="{% url 'jobs:job_list' %}">Customer Requests</a>
+                        <a class="btn btn-outline-primary" href="{% url 'jobs:my_offers' %}">My Sent Offers</a>
                         {% endif %}
                         <a class="btn btn-outline-primary" href="{% url 'accounts:profile' %}">Open Profile</a>
                         {% else %}
-                        <a class="btn btn-outline-primary" href="{% url 'accounts:register' %}">Create Account</a>
+                        <a class="btn btn-outline-primary" href="{% url 'craftsmen:service_listing_list' %}">Craftsmen Services</a>
                         <a class="btn btn-outline-primary" href="{% url 'accounts:login' %}">Login</a>
+                        <a class="btn btn-outline-primary" href="{% url 'accounts:register' %}">Register</a>
                         {% endif %}
                     </div>
                 </div>

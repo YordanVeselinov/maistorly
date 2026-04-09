@@ -175,6 +175,7 @@ class JobRequestCreateView(ClientRequiredMixin, JobRequestImageUploadMixin, Crea
         context = super().get_context_data(**kwargs)
         context["page_title"] = "Create Job Request"
         context["submit_label"] = "Create job request"
+        context["back_url"] = reverse("jobs:my_jobs")
         return context
 
 
@@ -206,6 +207,7 @@ class JobRequestUpdateView(LoginRequiredMixin, UserPassesTestMixin, JobRequestIm
         context = super().get_context_data(**kwargs)
         context["page_title"] = "Edit Job Request"
         context["submit_label"] = "Save changes"
+        context["back_url"] = reverse("jobs:my_jobs")
         return context
 
 
@@ -289,4 +291,16 @@ class MyOffersListView(CraftsmanRequiredMixin, ListView):
         return Offer.objects.filter(craftsman=self.request.user).select_related(
             "job_request",
             "job_request__owner",
+        )
+
+
+class MyReceivedOffersListView(ClientRequiredMixin, ListView):
+    model = Offer
+    template_name = "jobs/my_received_offers.html"
+    context_object_name = "offers"
+
+    def get_queryset(self):
+        return Offer.objects.filter(job_request__owner=self.request.user).select_related(
+            "job_request",
+            "craftsman",
         )

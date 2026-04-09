@@ -6,8 +6,9 @@
 <section>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
+            <span class="badge text-bg-warning mb-2">Craftsman Flow</span>
             <h1 class="mb-1">My Service Listings</h1>
-            <p class="text-secondary mb-0">Manage the services you offer to clients.</p>
+            <p class="text-secondary mb-0">Manage services you publish for clients to browse.</p>
         </div>
         <a class="btn btn-primary" href="{% url 'craftsmen:service_listing_create' %}">Create service listing</a>
     </div>
@@ -31,7 +32,7 @@
         {% empty %}
         <div class="col-12">
             <div class="alert alert-light border mb-0">
-                You have not created any service listings yet.
+                No service listings yet. Create one to present what work you can do.
             </div>
         </div>
         {% endfor %}

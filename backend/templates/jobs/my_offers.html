@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% load maistorly_tags %}
 
-{% block title %}My Offers{% endblock %}
+{% block title %}My Sent Offers{% endblock %}
 
 {% block content %}
 <div class="mb-4">
-    <h1 class="mb-1">My Offers</h1>
-    <p class="text-secondary mb-0">Review the offers you have submitted for job requests.</p>
+    <span class="badge text-bg-warning mb-2">Craftsman Flow</span>
+    <h1 class="mb-1">My Sent Offers</h1>
+    <p class="text-secondary mb-0">Review counter-offers you have sent for customer requests.</p>
 </div>
 
 <div class="row g-4">
@@ -34,7 +35,7 @@
     {% endfor %}
 {% else %}
     <div class="col-12">
-        <div class="alert alert-light border mb-0">You have not submitted any offers yet.</div>
+        <div class="alert alert-light border mb-0">No sent offers yet. Open customer requests and send your first counter-offer.</div>
     </div>
 {% endif %}
 </div>

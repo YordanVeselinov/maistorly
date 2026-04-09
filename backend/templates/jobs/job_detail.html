@@ -6,6 +6,7 @@
 {% block content %}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-4">
+        <span class="badge text-bg-primary mb-3">Customer Request</span>
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
             <div>
                 <h1 class="mb-1">{{ job_request.title }}</h1>
@@ -59,8 +60,8 @@
 
         <div class="d-flex flex-wrap gap-2">
             {% if is_owner %}
-            <a class="btn btn-outline-primary" href="{% url 'jobs:job_update' job_request.pk %}">Edit job request</a>
-            <a class="btn btn-outline-danger" href="{% url 'jobs:job_delete' job_request.pk %}">Delete job request</a>
+            <a class="btn btn-outline-primary" href="{% url 'jobs:job_update' job_request.pk %}">Edit customer request</a>
+            <a class="btn btn-outline-danger" href="{% url 'jobs:job_delete' job_request.pk %}">Delete customer request</a>
             {% endif %}
             {% if can_create_offer %}
             <a class="btn btn-primary" href="{% url 'jobs:offer_create' job_request.pk %}">Send counter-offer</a>
@@ -117,7 +118,7 @@
         {% endfor %}
     {% else %}
         <div class="col-12">
-            <div class="alert alert-light border mb-0">No offers yet.</div>
+            <div class="alert alert-light border mb-0">No counter-offers received yet.</div>
         </div>
     {% endif %}
     </div>

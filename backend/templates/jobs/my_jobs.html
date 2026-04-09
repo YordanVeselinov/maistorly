@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% load maistorly_tags %}
 
-{% block title %}My Jobs{% endblock %}
+{% block title %}My Requests{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
     <div>
-        <h1 class="mb-1">My Job Requests</h1>
-        <p class="text-secondary mb-0">Track, edit, and manage the jobs you have posted.</p>
+        <span class="badge text-bg-primary mb-2">Client Flow</span>
+        <h1 class="mb-1">My Requests</h1>
+        <p class="text-secondary mb-0">Track, edit, and manage your customer requests.</p>
     </div>
     {% if request.user|has_group:"Clients" %}
-    <a class="btn btn-primary" href="{% url 'jobs:job_create' %}">Create a new job request</a>
+    <a class="btn btn-primary" href="{% url 'jobs:job_create' %}">Create customer request</a>
     {% endif %}
 </div>
 
@@ -39,7 +40,7 @@
     {% endfor %}
 {% else %}
     <div class="col-12">
-        <div class="alert alert-light border mb-0">You have not created any job requests yet.</div>
+        <div class="alert alert-light border mb-0">No customer requests yet. Create your first request to receive counter-offers.</div>
     </div>
 {% endif %}
 </div>

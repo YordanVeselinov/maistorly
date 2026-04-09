@@ -8,10 +8,11 @@
         <div class="card-body p-4 p-lg-5">
             <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
                 <div>
+                    <span class="badge text-bg-primary mb-2">Client Flow</span>
                     <h1 class="h3 mb-2">{{ page_title }}</h1>
-                    <p class="text-secondary mb-0">Provide clear details so the right craftsmen can respond.</p>
+                    <p class="text-secondary mb-0">Create a customer request so craftsmen can review it and send counter-offers.</p>
                 </div>
-                <a class="btn btn-outline-secondary" href="{% url 'jobs:job_list' %}">Back</a>
+                <a class="btn btn-outline-secondary" href="{{ back_url }}">Back</a>
             </div>
             <form method="post" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
@@ -30,7 +31,7 @@
                 {% endfor %}
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
-                    <a class="btn btn-outline-secondary" href="{% url 'jobs:job_list' %}">Cancel</a>
+                    <a class="btn btn-outline-secondary" href="{{ back_url }}">Cancel</a>
                 </div>
             </form>
         </div>

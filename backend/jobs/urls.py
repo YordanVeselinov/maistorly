@@ -7,6 +7,7 @@ from .views import (
     JobRequestListView,
     JobRequestUpdateView,
     MyJobRequestListView,
+    MyReceivedOffersListView,
     MyOffersListView,
     OfferCreateView,
 )
@@ -16,6 +17,7 @@ app_name = "jobs"
 urlpatterns = [
     path("", JobRequestListView.as_view(), name="job_list"),
     path("mine/", MyJobRequestListView.as_view(), name="my_jobs"),
+    path("offers/received/", MyReceivedOffersListView.as_view(), name="my_received_offers"),
     path("create/", JobRequestCreateView.as_view(), name="job_create"),
     path("offers/mine/", MyOffersListView.as_view(), name="my_offers"),
     path("<int:pk>/", JobRequestDetailView.as_view(), name="job_detail"),
