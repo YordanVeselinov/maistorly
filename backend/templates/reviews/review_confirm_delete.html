@@ -3,22 +3,26 @@
 {% block title %}Delete Review{% endblock %}
 
 {% block content %}
-<h1>Delete Review</h1>
-<p>You are about to delete your review for "{{ review.craftsman }}". This action cannot be undone.</p>
-<form method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}
-    <p>
-        {{ field.label_tag }}
-        {{ field }}
-        {% if field.help_text %}
-        <small>{{ field.help_text }}</small>
-        {% endif %}
-        {{ field.errors }}
-    </p>
-    {% endfor %}
-    <button type="submit">Delete review</button>
-</form>
-<p><a href="{% url 'jobs:job_detail' review.job_request.pk %}">Cancel</a></p>
+<div class="form-shell">
+    <section class="surface">
+        <h1>Delete Review</h1>
+        <p class="muted">You are about to delete your review for "{{ review.craftsman }}". This action cannot be undone.</p>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+            <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+                {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="actions">
+                <button type="submit" class="button button--danger">Delete review</button>
+                <a class="button button--ghost" href="{% url 'jobs:job_detail' review.job_request.pk %}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>
 {% endblock %}

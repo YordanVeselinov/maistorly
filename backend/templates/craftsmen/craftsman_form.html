@@ -3,37 +3,31 @@
 {% block title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-<div class="mx-auto form-shell">
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4 p-lg-5">
-            <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-                <div>
-                    <h1 class="h3 mb-2">{{ page_title }}</h1>
-                    <p class="text-secondary mb-0">Keep your public craftsman profile clear and professional.</p>
-                </div>
-                <a class="btn btn-outline-secondary" href="{% url 'accounts:profile' %}">Back</a>
+<div class="form-shell">
+    <section class="surface">
+        <div class="page-header page-header--compact">
+            <div>
+                <h1>{{ page_title }}</h1>
+                <p class="page-subtitle">Keep your public craftsman profile clear and professional.</p>
             </div>
-            <form method="post" novalidate>
-                {% csrf_token %}
-                {{ form.non_field_errors }}
-                {% for field in form %}
-                <div class="mb-3">
-                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                    {% endif %}
-                    {% if field.errors %}
-                    <div class="text-danger small mt-1">{{ field.errors }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
-                    <a class="btn btn-outline-secondary" href="{% url 'accounts:profile' %}">Cancel</a>
-                </div>
-            </form>
+            <a class="button button--ghost" href="{% url 'accounts:profile' %}">Back</a>
         </div>
-    </div>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+            <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+                {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="actions">
+                <button type="submit" class="button button--primary">{{ submit_label }}</button>
+                <a class="button button--ghost" href="{% url 'accounts:profile' %}">Cancel</a>
+            </div>
+        </form>
+    </section>
 </div>
 {% endblock %}

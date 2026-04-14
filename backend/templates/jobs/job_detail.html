@@ -4,124 +4,117 @@
 {% block title %}{{ job_request.title }}{% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-4">
-        <span class="badge text-bg-primary mb-3">Customer Request</span>
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+<article class="surface stack stack--large">
+    <div>
+        <span class="label label--client page-kicker">Customer Request</span>
+        <div class="listing-card__header">
             <div>
-                <h1 class="mb-1">{{ job_request.title }}</h1>
-                <p class="text-secondary mb-0">Posted by {{ job_request.owner }}</p>
+                <h1>{{ job_request.title }}</h1>
+                <p class="muted">Posted by {{ job_request.owner }}</p>
             </div>
-            <div>
-                <span class="badge rounded-pill {{ job_request.status|status_badge_class }}">{{ job_request.get_status_display }}</span>
-            </div>
-        </div>
-
-        <div class="row g-3 mb-4">
-            <div class="col-md-3"><strong>City:</strong> {{ job_request.city }}</div>
-            <div class="col-md-4"><strong>Budget:</strong> {{ job_request|budget_range }}</div>
-            <div class="col-md-3"><strong>Preferred date:</strong> {{ job_request.preferred_date }}</div>
-        </div>
-
-        <p><strong>Description:</strong><br>{{ job_request.description }}</p>
-
-        {% if job_request.images.all %}
-        <div class="mb-4">
-            <strong>Reference images:</strong>
-            <div class="row g-3 mt-1">
-                {% for item in job_request.images.all %}
-                <div class="col-6 col-md-4 col-lg-3">
-                    <a href="{{ item.image.url }}" target="_blank" rel="noopener">
-                        <img class="img-fluid rounded border" src="{{ item.image.url }}" alt="{{ job_request.title }}">
-                    </a>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <p>
-            <strong>Categories:</strong>
-            {% for category in job_request.categories.all %}
-                <span class="badge text-bg-light border">{{ category.name }}</span>
-            {% empty %}
-                -
-            {% endfor %}
-        </p>
-
-        <p class="mb-4">
-            <strong>Required skills:</strong>
-            {% for skill in job_request.required_skills.all %}
-                <span class="badge text-bg-light border">{{ skill.name }}</span>
-            {% empty %}
-                -
-            {% endfor %}
-        </p>
-
-        <div class="d-flex flex-wrap gap-2">
-            {% if is_owner %}
-            <a class="btn btn-outline-primary" href="{% url 'jobs:job_update' job_request.pk %}">Edit customer request</a>
-            <a class="btn btn-outline-danger" href="{% url 'jobs:job_delete' job_request.pk %}">Delete customer request</a>
-            {% endif %}
-            {% if can_create_offer %}
-            <a class="btn btn-primary" href="{% url 'jobs:offer_create' job_request.pk %}">Send counter-offer</a>
-            {% endif %}
-            <a class="btn btn-outline-secondary" href="{{ back_to_jobs_url }}">Back</a>
+            <span class="label label--{{ job_request.status }}">{{ job_request.get_status_display }}</span>
         </div>
     </div>
-</div>
+
+    <div class="detail-grid">
+        <div class="detail-item"><strong>City:</strong> {{ job_request.city }}</div>
+        <div class="detail-item"><strong>Budget:</strong> {{ job_request|budget_range }}</div>
+        <div class="detail-item"><strong>Preferred date:</strong> {{ job_request.preferred_date }}</div>
+    </div>
+
+    <div class="description-block">
+        <h2>Description</h2>
+        <p>{{ job_request.description }}</p>
+    </div>
+
+    {% if job_request.images.all %}
+    <div class="description-block">
+        <h2>Reference images</h2>
+        <div class="gallery-grid">
+            {% for item in job_request.images.all %}
+            <a href="{{ item.image.url }}" target="_blank" rel="noopener">
+                <img class="gallery-image" src="{{ item.image.url }}" alt="{{ job_request.title }}">
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="description-block">
+        <h2>Categories</h2>
+        <div class="tag-list">
+            {% for category in job_request.categories.all %}
+            <span class="label label--muted">{{ category.name }}</span>
+            {% empty %}
+            <span class="muted">-</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="description-block">
+        <h2>Required skills</h2>
+        <div class="tag-list">
+            {% for skill in job_request.required_skills.all %}
+            <span class="label label--muted">{{ skill.name }}</span>
+            {% empty %}
+            <span class="muted">-</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="actions">
+        {% if is_owner %}
+        <a class="button button--secondary" href="{% url 'jobs:job_update' job_request.pk %}">Edit customer request</a>
+        <a class="button button--danger" href="{% url 'jobs:job_delete' job_request.pk %}">Delete customer request</a>
+        {% endif %}
+        {% if can_create_offer %}
+        <a class="button button--primary" href="{% url 'jobs:offer_create' job_request.pk %}">Send counter-offer</a>
+        {% endif %}
+        <a class="button button--ghost" href="{{ back_to_jobs_url }}">Back</a>
+    </div>
+</article>
 
 {% if is_owner %}
-<section>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h3 mb-0">Received Counter-Offers</h2>
+<section class="stack stack--large">
+    <div class="page-header page-header--compact">
+        <h2>Received Counter-Offers</h2>
     </div>
-    <div class="row g-4">
     {% if offer_entries %}
         {% for entry in offer_entries %}
-        <div class="col-12">
-            <article class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    {% with offer=entry.offer craftsman_profile=entry.craftsman_profile review=entry.review %}
-                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
-                        <div>
-                            <h3 class="h5 mb-1">Craftsman: {{ offer.craftsman }}</h3>
-                            <p class="text-secondary mb-0">{{ offer.message }}</p>
-                        </div>
-                        <div>
-                            <span class="badge rounded-pill {{ offer.status|status_badge_class }}">{{ offer.get_status_display }}</span>
-                        </div>
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4"><strong>Proposed price:</strong> {{ offer.proposed_price|currency_bgn }}</div>
-                        <div class="col-md-4"><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
-                    </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        {% if craftsman_profile %}
-                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'craftsmen:craftsman_detail' craftsman_profile.pk %}">View craftsman profile</a>
-                        {% endif %}
-                        {% if job_request.status == "completed" %}
-                            {% if review %}
-                            <a class="btn btn-sm btn-outline-primary" href="{% url 'reviews:review_update' review.pk %}">Edit review</a>
-                            <a class="btn btn-sm btn-outline-danger" href="{% url 'reviews:review_delete' review.pk %}">Delete review</a>
-                            {% elif craftsman_profile %}
-                            <a class="btn btn-sm btn-primary" href="{% url 'reviews:review_create' job_request.pk craftsman_profile.pk %}">Write review</a>
-                            {% else %}
-                            <span class="text-secondary">This craftsman does not have a public profile yet.</span>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                    {% endwith %}
+        <article class="listing-card">
+            {% with offer=entry.offer craftsman_profile=entry.craftsman_profile review=entry.review %}
+            <div class="listing-card__header">
+                <div>
+                    <h3>Craftsman: {{ offer.craftsman }}</h3>
+                    <p class="muted">{{ offer.message }}</p>
                 </div>
-            </article>
-        </div>
+                <span class="label label--{{ offer.status }}">{{ offer.get_status_display }}</span>
+            </div>
+            <div class="meta-grid">
+                <div><strong>Proposed price:</strong> {{ offer.proposed_price|currency_bgn }}</div>
+                <div><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
+            </div>
+            <div class="actions">
+                {% if craftsman_profile %}
+                <a class="button button--ghost button--small" href="{% url 'craftsmen:craftsman_detail' craftsman_profile.pk %}">View craftsman profile</a>
+                {% endif %}
+                {% if job_request.status == "completed" %}
+                    {% if review %}
+                    <a class="button button--secondary button--small" href="{% url 'reviews:review_update' review.pk %}">Edit review</a>
+                    <a class="button button--danger button--small" href="{% url 'reviews:review_delete' review.pk %}">Delete review</a>
+                    {% elif craftsman_profile %}
+                    <a class="button button--primary button--small" href="{% url 'reviews:review_create' job_request.pk craftsman_profile.pk %}">Write review</a>
+                    {% else %}
+                    <span class="muted">This craftsman does not have a public profile yet.</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% endwith %}
+        </article>
         {% endfor %}
     {% else %}
-        <div class="col-12">
-            <div class="alert alert-light border mb-0">No counter-offers received yet.</div>
-        </div>
+    <div class="empty-state">No counter-offers received yet.</div>
     {% endif %}
-    </div>
 </section>
 {% endif %}
 {% endblock %}

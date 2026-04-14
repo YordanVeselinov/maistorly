@@ -3,6 +3,9 @@
 {% block title %}Logged out{% endblock %}
 
 {% block content %}
-<h1>You are logged out</h1>
-<p><a href="{% url 'accounts:login' %}">Log back in</a></p>
+<section class="surface center-panel">
+    <h1>You are logged out</h1>
+    <p class="muted">Your session has ended.</p>
+    <a class="button button--primary" href="{% url 'accounts:login' %}">Log back in</a>
+</section>
 {% endblock %}

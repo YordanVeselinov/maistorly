@@ -1,46 +1,49 @@
 {% extends "base.html" %}
-{% load maistorly_tags %}
 
 {% block title %}{{ craftsman }}{% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm">
-    <div class="card-body p-4">
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
-            <div>
-                <h1 class="mb-1">{{ craftsman }}</h1>
-                <p class="text-secondary mb-0">Username: {{ craftsman.user.username }}</p>
-            </div>
-            <div>
-                <span class="badge rounded-pill {{ craftsman.is_available|boolean_badge_class }}">
-                    {% if craftsman.is_available %}Available{% else %}Unavailable{% endif %}
-                </span>
-            </div>
+<article class="surface stack stack--large">
+    <div class="listing-card__header">
+        <div>
+            <h1>{{ craftsman }}</h1>
+            <p class="muted">Username: {{ craftsman.user.username }}</p>
         </div>
+        {% if craftsman.is_available %}
+        <span class="label label--success">Available</span>
+        {% else %}
+        <span class="label label--muted">Unavailable</span>
+        {% endif %}
+    </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-4"><strong>City:</strong> {{ craftsman.city|default:"-" }}</div>
-            <div class="col-md-4"><strong>Country:</strong> {{ craftsman.country|default:"-" }}</div>
-            <div class="col-md-4"><strong>Phone:</strong> {{ craftsman.phone|default:"-" }}</div>
-        </div>
+    <div class="detail-grid">
+        <div class="detail-item"><strong>City:</strong> {{ craftsman.city|default:"-" }}</div>
+        <div class="detail-item"><strong>Country:</strong> {{ craftsman.country|default:"-" }}</div>
+        <div class="detail-item"><strong>Phone:</strong> {{ craftsman.phone|default:"-" }}</div>
+    </div>
 
-        <p class="mb-4"><strong>Bio:</strong><br>{{ craftsman.bio|default:"-" }}</p>
-        <p class="mb-4">
-            <strong>Skills:</strong><br>
+    <div class="description-block">
+        <h2>Bio</h2>
+        <p>{{ craftsman.bio|default:"-" }}</p>
+    </div>
+
+    <div class="description-block">
+        <h2>Skills</h2>
+        <div class="tag-list">
             {% for skill in craftsman.skills.all %}
-            <span class="badge text-bg-light border">{{ skill.name }}</span>
+            <span class="label label--muted">{{ skill.name }}</span>
             {% empty %}
-            -
+            <span class="muted">-</span>
             {% endfor %}
-        </p>
-
-        <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-outline-primary" href="{% url 'reviews:craftsman_reviews' craftsman.pk %}">View reviews</a>
-            {% if request.user.is_authenticated and request.user == craftsman.user %}
-            <a class="btn btn-primary" href="{% url 'craftsmen:profile_edit' request.user.pk %}">Edit my craftsman profile</a>
-            {% endif %}
-            <a class="btn btn-outline-secondary" href="{% url 'craftsmen:craftsman_list' %}">Back to craftsmen</a>
         </div>
     </div>
-</div>
+
+    <div class="actions">
+        <a class="button button--secondary" href="{% url 'reviews:craftsman_reviews' craftsman.pk %}">View reviews</a>
+        {% if request.user.is_authenticated and request.user == craftsman.user %}
+        <a class="button button--primary" href="{% url 'craftsmen:profile_edit' request.user.pk %}">Edit my craftsman profile</a>
+        {% endif %}
+        <a class="button button--ghost" href="{% url 'craftsmen:craftsman_list' %}">Back to craftsmen</a>
+    </div>
+</article>
 {% endblock %}

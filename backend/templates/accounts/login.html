@@ -3,32 +3,26 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="mx-auto auth-shell">
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-4 p-lg-5">
-            <div class="text-center mb-4">
-                <h1 class="h3 mb-2">Welcome back</h1>
-                <p class="text-secondary mb-0">Login to manage your profile, jobs, and offers.</p>
-            </div>
-            <form method="post" novalidate>
-                {% csrf_token %}
-                {{ form.non_field_errors }}
-                {% for field in form %}
-                <div class="mb-3">
-                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                    {% endif %}
-                    {% if field.errors %}
-                    <div class="text-danger small mt-1">{{ field.errors }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                <button type="submit" class="btn btn-primary w-100">Login</button>
-            </form>
-            <p class="text-center text-secondary mt-4 mb-0">No account yet? <a href="{% url 'accounts:register' %}">Register</a></p>
+<div class="auth-shell">
+    <section class="surface">
+        <div class="center-panel">
+            <h1>Welcome back</h1>
+            <p class="muted">Login to manage your profile, jobs, and offers.</p>
         </div>
-    </div>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+            <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+                {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="button button--primary button--full">Login</button>
+        </form>
+        <p class="muted center-panel">No account yet? <a href="{% url 'accounts:register' %}">Register</a></p>
+    </section>
 </div>
 {% endblock %}

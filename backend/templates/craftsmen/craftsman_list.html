@@ -1,47 +1,44 @@
 {% extends "base.html" %}
-{% load maistorly_tags %}
 
 {% block title %}Craftsmen{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <span class="badge text-bg-secondary mb-2">Craftsman Profiles</span>
-    <h1 class="mb-1">Craftsmen</h1>
-    <p class="text-secondary mb-0">Browse public craftsman profiles, skills, and availability. Service listings are shown in the separate Craftsmen Services section.</p>
+<div class="page-header">
+    <div>
+        <span class="label label--muted page-kicker">Craftsman Profiles</span>
+        <h1>Craftsmen</h1>
+        <p class="page-subtitle">Browse public craftsman profiles, skills, and availability. Service listings are shown separately.</p>
+    </div>
 </div>
 
-<div class="row g-4">
+<div class="listing-grid">
 {% if craftsmen %}
     {% for craftsman in craftsmen %}
-    <div class="col-md-6 col-xl-4">
-        <article class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-                        <h2 class="h4 mb-0"><a class="text-decoration-none" href="{% url 'craftsmen:craftsman_detail' craftsman.pk %}">{{ craftsman }}</a></h2>
-                        <span class="badge rounded-pill {{ craftsman.is_available|boolean_badge_class }}">
-                            {% if craftsman.is_available %}Available{% else %}Unavailable{% endif %}
-                        </span>
-                </div>
-                <p class="mb-2"><strong>City:</strong> {{ craftsman.city|default:"-" }}</p>
-                <p class="mb-3"><strong>Country:</strong> {{ craftsman.country|default:"-" }}</p>
-                <div class="d-flex flex-wrap gap-2">
-                    {% for skill in craftsman.skills.all %}
-                    <span class="badge text-bg-light border">{{ skill.name }}</span>
-                    {% empty %}
-                    <span class="text-secondary">No skills added yet.</span>
-                    {% endfor %}
-                </div>
-                <div class="mt-3">
-                    <a class="btn btn-outline-secondary btn-sm" href="{% url 'craftsmen:craftsman_detail' craftsman.pk %}">View profile</a>
-                </div>
-            </div>
-        </article>
-    </div>
+    <article class="listing-card">
+        <div class="listing-card__header">
+            <h2 class="listing-card__title"><a href="{% url 'craftsmen:craftsman_detail' craftsman.pk %}">{{ craftsman }}</a></h2>
+            {% if craftsman.is_available %}
+            <span class="label label--success">Available</span>
+            {% else %}
+            <span class="label label--muted">Unavailable</span>
+            {% endif %}
+        </div>
+        <p><strong>City:</strong> {{ craftsman.city|default:"-" }}</p>
+        <p><strong>Country:</strong> {{ craftsman.country|default:"-" }}</p>
+        <div class="tag-list">
+            {% for skill in craftsman.skills.all %}
+            <span class="label label--muted">{{ skill.name }}</span>
+            {% empty %}
+            <span class="muted">No skills added yet.</span>
+            {% endfor %}
+        </div>
+        <div class="actions">
+            <a class="button button--ghost button--small" href="{% url 'craftsmen:craftsman_detail' craftsman.pk %}">View profile</a>
+        </div>
+    </article>
     {% endfor %}
 {% else %}
-    <div class="col-12">
-        <div class="alert alert-light border mb-0">No craftsmen profiles are available yet.</div>
-    </div>
+    <div class="empty-state">No craftsmen profiles are available yet.</div>
 {% endif %}
 </div>
 {% endblock %}

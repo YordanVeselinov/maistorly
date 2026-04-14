@@ -4,39 +4,35 @@
 {% block title %}My Sent Offers{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <span class="badge text-bg-warning mb-2">Craftsman Flow</span>
-    <h1 class="mb-1">My Sent Offers</h1>
-    <p class="text-secondary mb-0">Review counter-offers you have sent for customer requests.</p>
+<div class="page-header">
+    <div>
+        <span class="label label--pro page-kicker">Craftsman Flow</span>
+        <h1>My Sent Offers</h1>
+        <p class="page-subtitle">Review counter-offers you have sent for customer requests.</p>
+    </div>
 </div>
 
-<div class="row g-4">
+<div class="stack">
 {% if offers %}
     {% for offer in offers %}
-    <div class="col-12">
-        <article class="card border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
-                    <div>
-                        <h2 class="h4 mb-1"><a class="text-decoration-none" href="{% url 'jobs:job_detail' offer.job_request.pk %}">{{ offer.job_request.title }}</a></h2>
-                        <p class="text-secondary mb-0">Job owner: {{ offer.job_request.owner }}</p>
-                    </div>
-                    <span class="badge rounded-pill align-self-start {{ offer.status|status_badge_class }}">{{ offer.get_status_display }}</span>
-                </div>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4"><strong>Proposed price:</strong> {{ offer.proposed_price|currency_bgn }}</div>
-                    <div class="col-md-4"><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
-                </div>
-                <p class="mb-3">{{ offer.message }}</p>
-                <a class="btn btn-outline-secondary btn-sm" href="{% url 'jobs:job_detail' offer.job_request.pk %}">View job request</a>
+    <article class="listing-card">
+        <div class="listing-card__header">
+            <div>
+                <h2 class="listing-card__title"><a href="{% url 'jobs:job_detail' offer.job_request.pk %}">{{ offer.job_request.title }}</a></h2>
+                <p class="muted">Job owner: {{ offer.job_request.owner }}</p>
             </div>
-        </article>
-    </div>
+            <span class="label label--{{ offer.status }}">{{ offer.get_status_display }}</span>
+        </div>
+        <div class="meta-grid">
+            <div><strong>Proposed price:</strong> {{ offer.proposed_price|currency_bgn }}</div>
+            <div><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
+        </div>
+        <p>{{ offer.message }}</p>
+        <a class="button button--ghost button--small" href="{% url 'jobs:job_detail' offer.job_request.pk %}">View job request</a>
+    </article>
     {% endfor %}
 {% else %}
-    <div class="col-12">
-        <div class="alert alert-light border mb-0">No sent offers yet. Open customer requests and send your first counter-offer.</div>
-    </div>
+    <div class="empty-state">No sent offers yet. Open customer requests and send your first counter-offer.</div>
 {% endif %}
 </div>
 {% endblock %}

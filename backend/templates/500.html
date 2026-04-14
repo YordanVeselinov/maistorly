@@ -3,15 +3,13 @@
 {% block title %}Server Error{% endblock %}
 
 {% block content %}
-<section class="py-5 text-center">
-    <div class="mx-auto" style="max-width: 40rem;">
-        <p class="text-uppercase text-secondary fw-semibold mb-2">500 Error</p>
-        <h1 class="display-5 fw-bold mb-3">Something went wrong on our side.</h1>
-        <p class="lead text-secondary mb-4">Please try again in a moment. If the issue continues, return to a known page and continue browsing.</p>
-        <div class="d-flex justify-content-center gap-2 flex-wrap">
-            <a class="btn btn-primary" href="{% url 'home' %}">Back Home</a>
-            <a class="btn btn-outline-secondary" href="{% url 'craftsmen:craftsman_list' %}">Browse Craftsmen</a>
-        </div>
+<section class="surface center-panel">
+    <span class="label label--muted page-kicker">500 Error</span>
+    <h1>Something went wrong on our side.</h1>
+    <p class="intro-text">Please try again in a moment. If the issue continues, return to a known page and continue browsing.</p>
+    <div class="actions">
+        <a class="button button--primary" href="{% url 'home' %}">Back Home</a>
+        <a class="button button--ghost" href="{% url 'craftsmen:craftsman_list' %}">Browse Craftsmen</a>
     </div>
 </section>
 {% endblock %}
