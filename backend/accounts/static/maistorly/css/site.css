@@ -62,10 +62,6 @@ a {
     text-underline-offset: 0.18em;
 }
 
-a:hover {
-    color: var(--color-brand-dark);
-}
-
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -74,6 +70,12 @@ textarea:focus-visible,
 summary:focus-visible {
     outline: 3px solid rgba(16, 199, 216, 0.45);
     outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    a:hover {
+        color: var(--color-brand-dark);
+    }
 }
 
 h1,
@@ -161,10 +163,8 @@ dd {
 
 .brand__logo {
     width: 9.5rem;
-    height: 3.1rem;
+    height: auto;
     object-fit: contain;
-    border-radius: var(--radius-sm);
-    background: var(--color-ink);
 }
 
 .nav-toggle {
@@ -464,10 +464,12 @@ dd {
     text-decoration: none;
     cursor: pointer;
     background: var(--color-surface);
-}
-
-.button:hover {
-    text-decoration: none;
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        color 160ms ease,
+        transform 160ms ease;
 }
 
 .button--primary {
@@ -476,20 +478,10 @@ dd {
     box-shadow: 0 10px 24px rgba(16, 199, 216, 0.25);
 }
 
-.button--primary:hover {
-    color: #021f24;
-    background: #36d6e3;
-}
-
 .button--secondary {
     color: var(--color-brand-dark);
     border-color: rgba(16, 199, 216, 0.36);
     background: var(--color-surface-accent);
-}
-
-.button--secondary:hover {
-    color: var(--color-ink);
-    border-color: var(--color-brand);
 }
 
 .button--ghost {
@@ -499,6 +491,66 @@ dd {
 }
 
 .button--danger {
+    color: #ffffff;
+    background: var(--color-danger);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .button:hover {
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .button--primary:hover {
+        color: #021f24;
+        background: #36d6e3;
+        box-shadow: 0 12px 28px rgba(16, 199, 216, 0.32);
+    }
+
+    .button--secondary:hover {
+        color: var(--color-ink);
+        border-color: var(--color-brand);
+        background: #d9f8fb;
+        box-shadow: 0 10px 24px rgba(16, 199, 216, 0.14);
+    }
+
+    .button--ghost:hover {
+        color: var(--color-brand-dark);
+        border-color: rgba(16, 199, 216, 0.42);
+        background: var(--color-surface-accent);
+        box-shadow: 0 10px 24px rgba(9, 38, 45, 0.08);
+    }
+
+    .button--danger:hover {
+        color: #ffffff;
+        background: #9f3030;
+        box-shadow: 0 10px 24px rgba(184, 60, 60, 0.2);
+    }
+}
+
+.button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.button--primary:active {
+    color: #062f35;
+    background: var(--color-brand);
+}
+
+.button--secondary:active {
+    color: var(--color-brand-dark);
+    border-color: rgba(16, 199, 216, 0.36);
+    background: var(--color-surface-accent);
+}
+
+.button--ghost:active {
+    color: var(--color-text);
+    border-color: var(--color-border);
+    background: var(--color-surface);
+}
+
+.button--danger:active {
     color: #ffffff;
     background: var(--color-danger);
 }
