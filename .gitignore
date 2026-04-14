@@ -1,14 +1,23 @@
-# ===== OS / Editor =====
+# ===== OS files =====
 .DS_Store
 Thumbs.db
-.vscode/
-.idea/
+Desktop.ini
 
-# ===== Env files / secrets =====
+# ===== Editors and IDEs =====
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ===== Environment files and secrets =====
 .env
 .env.*
+!.env.example
 *.pem
 *.key
+*.crt
+*.p12
+*.pfx
 
 # ===== Python =====
 __pycache__/
@@ -16,18 +25,21 @@ __pycache__/
 *.pyo
 *.pyd
 *.egg-info/
-dist/
-build/
 .eggs/
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 .venv/
 venv/
+env/
 ENV/
 pip-wheel-metadata/
-*.sqlite3
 
 # ===== Django =====
+*.sqlite3
+db.sqlite3
 staticfiles/
 media/
 
@@ -46,5 +58,7 @@ out/
 .eslintcache
 *.tsbuildinfo
 
-# ===== Logs =====
+# ===== Logs and local runtime files =====
 *.log
+*.pid
+*.seed
