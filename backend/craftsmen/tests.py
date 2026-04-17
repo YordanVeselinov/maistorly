@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+from cloudinary import CloudinaryResource
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -69,7 +72,13 @@ class ServiceListingViewTests(TestCase):
             category=self.category,
         )
 
-    def test_craftsman_can_create_service_listing(self):
+    @patch("cloudinary.uploader.upload_resource")
+    def test_craftsman_can_create_service_listing(self, mocked_upload):
+        mocked_upload.return_value = CloudinaryResource(
+            "service_listings/images/work-sample",
+            resource_type="image",
+            type="upload",
+        )
         self.client.force_login(self.craftsman)
         image = SimpleUploadedFile(
             "work-sample.jpg",
@@ -93,6 +102,7 @@ class ServiceListingViewTests(TestCase):
         listing = ServiceListing.objects.get(title="Wall crack repair")
         self.assertEqual(listing.craftsman, self.craftsman)
         self.assertEqual(listing.images.count(), 1)
+        mocked_upload.assert_called_once()
 
     def test_client_cannot_create_service_listing(self):
         self.client.force_login(self.client_user)

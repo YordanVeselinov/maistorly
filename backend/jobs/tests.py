@@ -1,7 +1,9 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from cloudinary import CloudinaryResource
 from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -88,8 +90,19 @@ class JobRequestViewTests(TestCase):
         self.job_request.categories.add(self.category)
         self.job_request.required_skills.add(self.skill)
 
-    def test_authenticated_user_can_create_job_request_and_becomes_owner(self):
+    @patch("cloudinary.uploader.upload_resource")
+    def test_authenticated_user_can_create_job_request_and_becomes_owner(self, mocked_upload):
+        mocked_upload.return_value = CloudinaryResource(
+            "job_requests/images/install-faucet",
+            resource_type="image",
+            type="upload",
+        )
         self.client.force_login(self.other_user)
+        image = SimpleUploadedFile(
+            "reference.jpg",
+            b"fake-image-content",
+            content_type="image/jpeg",
+        )
 
         response = self.client.post(
             reverse("jobs:job_create"),
@@ -102,12 +115,15 @@ class JobRequestViewTests(TestCase):
                 "preferred_date": timezone.localdate() + timedelta(days=3),
                 "categories": [self.category.pk],
                 "required_skills": [self.skill.pk],
+                "images": [image],
             },
         )
 
         self.assertEqual(response.status_code, 302)
         job_request = JobRequest.objects.get(title="Install faucet")
         self.assertEqual(job_request.owner, self.other_user)
+        self.assertEqual(job_request.images.count(), 1)
+        mocked_upload.assert_called_once()
 
     def test_anonymous_user_cannot_access_job_request_list(self):
         response = self.client.get(reverse("jobs:job_list"))

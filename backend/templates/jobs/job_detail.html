@@ -32,9 +32,13 @@
         <h2>Reference images</h2>
         <div class="gallery-grid">
             {% for item in job_request.images.all %}
+            {% if item.image %}
             <a href="{{ item.image.url }}" target="_blank" rel="noopener">
                 <img class="gallery-image" src="{{ item.image.url }}" alt="{{ job_request.title }}">
             </a>
+            {% else %}
+            <div class="gallery-image gallery-image--placeholder">Image unavailable</div>
+            {% endif %}
             {% endfor %}
         </div>
     </div>

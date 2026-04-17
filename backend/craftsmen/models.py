@@ -1,3 +1,4 @@
+from cloudinary.models import CloudinaryField
 from django.conf import settings
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
@@ -87,8 +88,10 @@ class ServiceListingImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = models.FileField(
-        upload_to="service_listings/images/",
+    image = CloudinaryField(
+        "image",
+        folder="service_listings/images",
+        resource_type="image",
         validators=[
             FileExtensionValidator(
                 allowed_extensions=["jpg", "jpeg", "png", "webp"],

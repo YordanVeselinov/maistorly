@@ -711,6 +711,15 @@ form ul.errorlist {
     background: var(--color-surface-soft);
 }
 
+.gallery-image--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-muted);
+    font-weight: 700;
+    text-align: center;
+}
+
 .center-panel {
     max-width: 42rem;
     margin: 0 auto;

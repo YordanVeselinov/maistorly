@@ -72,6 +72,9 @@ Required and commonly used variables are documented in `.env.example`.
 - `STATIC_ROOT`
 - `MEDIA_URL`
 - `MEDIA_ROOT`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
 
 ## PostgreSQL and Redis
 
@@ -139,9 +142,9 @@ python manage.py test accounts jobs reviews craftsmen services
 Development settings now include:
 
 - `STATIC_URL` and `STATIC_ROOT`
-- `MEDIA_URL` and `MEDIA_ROOT`
+- Cloudinary-backed media upload settings
 
-Media files are served by Django only when `DEBUG=True`.
+Uploaded media files are stored in Cloudinary. Static files remain local and are collected with Django.
 
 For deployment, collect static files with:
 

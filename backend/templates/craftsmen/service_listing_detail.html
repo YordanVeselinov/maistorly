@@ -40,9 +40,13 @@
         <h2>Work images</h2>
         <div class="gallery-grid">
             {% for item in service_listing.images.all %}
+            {% if item.image %}
             <a href="{{ item.image.url }}" target="_blank" rel="noopener">
                 <img class="gallery-image" src="{{ item.image.url }}" alt="{{ service_listing.title }}">
             </a>
+            {% else %}
+            <div class="gallery-image gallery-image--placeholder">Image unavailable</div>
+            {% endif %}
             {% endfor %}
         </div>
     </div>
