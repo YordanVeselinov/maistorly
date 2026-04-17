@@ -18,7 +18,20 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+DJANGO_ENV_FILE = os.getenv("DJANGO_ENV_FILE")
+if DJANGO_ENV_FILE:
+    load_dotenv(DJANGO_ENV_FILE)
+
 load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR.parent / ".env")
+
+
+def get_cloudinary_env(name):
+    value = os.getenv(name)
+    if value is None:
+        return None
+    return value.strip() or None
 
 
 # Quick-start development settings - unsuitable for production
@@ -163,9 +176,9 @@ STATIC_ROOT = BASE_DIR / os.getenv("STATIC_ROOT", "staticfiles")
 MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
 MEDIA_ROOT = BASE_DIR / os.getenv("MEDIA_ROOT", "media")
 
-CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
-CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
-CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+CLOUDINARY_CLOUD_NAME = get_cloudinary_env("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = get_cloudinary_env("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = get_cloudinary_env("CLOUDINARY_API_SECRET")
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
