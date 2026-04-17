@@ -26,7 +26,12 @@
             </div>
         </article>
         {% empty %}
-        <div class="empty-state">No service listings yet. Create one to present what work you can do.</div>
+        <div class="empty-state stack">
+            <p>No service listings yet. Create your first listing so clients can see what work you offer.</p>
+            <div class="actions">
+                <a class="button button--primary" href="{% url 'craftsmen:service_listing_create' %}">Create your first service listing</a>
+            </div>
+        </div>
         {% endfor %}
     </div>
 </section>

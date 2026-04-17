@@ -150,3 +150,13 @@ class ServiceListingViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_my_service_listings_shows_empty_state_without_listings(self):
+        self.listing.delete()
+        self.client.force_login(self.craftsman)
+
+        response = self.client.get(reverse("craftsmen:my_service_listings"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No service listings yet.")
+        self.assertContains(response, "Create your first service listing")
