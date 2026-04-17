@@ -14,17 +14,14 @@ import os
 from pathlib import Path
 
 import cloudinary
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DJANGO_ENV_FILE = os.getenv("DJANGO_ENV_FILE")
-if DJANGO_ENV_FILE:
-    load_dotenv(DJANGO_ENV_FILE)
-
-load_dotenv(BASE_DIR / ".env")
-load_dotenv(BASE_DIR.parent / ".env")
+ENV_FILE = Path(os.getenv("DJANGO_ENV_FILE", BASE_DIR / ".env"))
+load_dotenv(ENV_FILE)
 
 
 def get_cloudinary_env(name):
@@ -179,6 +176,19 @@ MEDIA_ROOT = BASE_DIR / os.getenv("MEDIA_ROOT", "media")
 CLOUDINARY_CLOUD_NAME = get_cloudinary_env("CLOUDINARY_CLOUD_NAME")
 CLOUDINARY_API_KEY = get_cloudinary_env("CLOUDINARY_API_KEY")
 CLOUDINARY_API_SECRET = get_cloudinary_env("CLOUDINARY_API_SECRET")
+CLOUDINARY_REQUIRED_ENV = {
+    "CLOUDINARY_CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
+    "CLOUDINARY_API_KEY": CLOUDINARY_API_KEY,
+    "CLOUDINARY_API_SECRET": CLOUDINARY_API_SECRET,
+}
+CLOUDINARY_MISSING_ENV = [
+    name for name, value in CLOUDINARY_REQUIRED_ENV.items() if value is None
+]
+if CLOUDINARY_MISSING_ENV:
+    raise ImproperlyConfigured(
+        "Missing Cloudinary environment variables: "
+        + ", ".join(CLOUDINARY_MISSING_ENV)
+    )
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
