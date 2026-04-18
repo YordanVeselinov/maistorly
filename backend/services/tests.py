@@ -10,7 +10,7 @@ class ServiceModelsTests(TestCase):
         self.assertEqual(category.slug, "home-repair")
 
     def test_skill_slug_is_generated_from_name(self):
-        category = Category.objects.create(name="Electrical")
-        skill = Skill.objects.create(category=category, name="Light Installation")
+        category = Category.objects.create(name="Test Electrical")
+        skill = Skill.objects.create(category=category, name="Test Light Installation")
 
-        self.assertEqual(skill.slug, "light-installation")
+        self.assertEqual(skill.slug, "test-light-installation")

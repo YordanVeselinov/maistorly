@@ -1,6 +1,13 @@
 from django import forms
 from django.core.validators import RegexValidator
 
+from services.form_fields import (
+    CategoryChoiceField,
+    SkillMultipleChoiceField,
+    category_queryset,
+    skill_queryset,
+)
+
 from .models import CraftsmanProfile, ServiceListing
 
 
@@ -172,6 +179,27 @@ class CraftsmanProfileForm(forms.ModelForm):
 
 
 class BaseServiceListingForm(forms.ModelForm):
+    category = CategoryChoiceField(
+        label="Category",
+        queryset=category_queryset(),
+        required=False,
+        empty_label="Select a category",
+        widget=forms.Select(
+            attrs={
+                "class": "form-control",
+            }
+        ),
+    )
+    skills = SkillMultipleChoiceField(
+        label="Skills",
+        queryset=skill_queryset(),
+        required=False,
+        widget=forms.SelectMultiple(
+            attrs={
+                "class": "form-control",
+            }
+        ),
+    )
     images = MultipleImageFileField(
         label="Work images",
         required=False,
@@ -243,17 +271,12 @@ class BaseServiceListingForm(forms.ModelForm):
                     "step": "0.01",
                 }
             ),
-            "category": forms.Select(
-                attrs={
-                    "class": "form-control",
-                }
-            ),
-            "skills": forms.SelectMultiple(
-                attrs={
-                    "class": "form-control",
-                }
-            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["category"].queryset = category_queryset()
+        self.fields["skills"].queryset = skill_queryset()
 
     def clean_title(self):
         return self.cleaned_data.get("title", "").strip()

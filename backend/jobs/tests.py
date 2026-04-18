@@ -13,13 +13,13 @@ from accounts.signals import CLIENTS_GROUP, CRAFTSMEN_GROUP
 from accounts.models import User
 from services.models import Category, Skill
 
-from .forms import JobRequestCreateForm
+from .forms import JobRequestCreateForm, JobRequestUpdateForm
 from .models import JobRequest, JobRequestImage, Offer
 
 
 class JobRequestFormTests(TestCase):
     def setUp(self):
-        self.category = Category.objects.create(name="Plumbing")
+        self.category = Category.objects.create(name="Test Plumbing")
         self.skill = Skill.objects.create(category=self.category, name="Pipe Repair")
 
     def test_job_request_create_form_rejects_budget_max_below_budget_min(self):
@@ -54,6 +54,22 @@ class JobRequestFormTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("preferred_date", form.errors)
 
+    def test_create_and_update_forms_expose_existing_categories_and_skills(self):
+        category = Category.objects.create(name="Test Form Job Category")
+        skill = Skill.objects.create(category=category, name="Test Form Job Skill")
+
+        create_form = JobRequestCreateForm()
+        update_form = JobRequestUpdateForm()
+
+        self.assertIn(category, create_form.fields["categories"].queryset)
+        self.assertIn(skill, create_form.fields["required_skills"].queryset)
+        self.assertIn(category, update_form.fields["categories"].queryset)
+        self.assertIn(skill, update_form.fields["required_skills"].queryset)
+        self.assertEqual(
+            create_form.fields["required_skills"].label_from_instance(skill),
+            "Test Form Job Category - Test Form Job Skill",
+        )
+
 
 class JobRequestViewTests(TestCase):
     def setUp(self):
@@ -77,7 +93,7 @@ class JobRequestViewTests(TestCase):
         self.owner.groups.add(self.clients_group)
         self.other_user.groups.add(self.clients_group)
         self.craftsman_user.groups.add(self.craftsmen_group)
-        self.category = Category.objects.create(name="Electrical")
+        self.category = Category.objects.create(name="Test Electrical")
         self.skill = Skill.objects.create(category=self.category, name="Wiring")
         self.job_request = JobRequest.objects.create(
             owner=self.owner,
@@ -410,7 +426,7 @@ class JobApiTests(TestCase):
         self.owner.groups.add(self.clients_group)
         self.other_client.groups.add(self.clients_group)
         self.craftsman.groups.add(self.craftsmen_group)
-        self.category = Category.objects.create(name="Painting")
+        self.category = Category.objects.create(name="Test Painting")
         self.skill = Skill.objects.create(category=self.category, name="Interior Painting")
         self.job_request = JobRequest.objects.create(
             owner=self.owner,

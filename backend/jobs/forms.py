@@ -1,6 +1,13 @@
 from django import forms
 from django.utils import timezone
 
+from services.form_fields import (
+    CategoryMultipleChoiceField,
+    SkillMultipleChoiceField,
+    category_queryset,
+    skill_queryset,
+)
+
 from .models import JobRequest, Offer
 
 
@@ -26,6 +33,26 @@ class MultipleImageFileField(forms.FileField):
 
 
 class BaseJobRequestForm(forms.ModelForm):
+    categories = CategoryMultipleChoiceField(
+        label="Categories",
+        queryset=category_queryset(),
+        required=False,
+        widget=forms.SelectMultiple(
+            attrs={
+                "class": "form-control",
+            }
+        ),
+    )
+    required_skills = SkillMultipleChoiceField(
+        label="Required skills",
+        queryset=skill_queryset(),
+        required=False,
+        widget=forms.SelectMultiple(
+            attrs={
+                "class": "form-control",
+            }
+        ),
+    )
     images = MultipleImageFileField(
         label="Reference images",
         required=False,
@@ -136,17 +163,12 @@ class BaseJobRequestForm(forms.ModelForm):
                     "type": "date",
                 }
             ),
-            "categories": forms.SelectMultiple(
-                attrs={
-                    "class": "form-control",
-                }
-            ),
-            "required_skills": forms.SelectMultiple(
-                attrs={
-                    "class": "form-control",
-                }
-            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["categories"].queryset = category_queryset()
+        self.fields["required_skills"].queryset = skill_queryset()
 
     def clean_title(self):
         return self.cleaned_data.get("title", "").strip()

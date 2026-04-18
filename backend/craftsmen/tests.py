@@ -11,7 +11,38 @@ from accounts.signals import CLIENTS_GROUP, CRAFTSMEN_GROUP
 from accounts.models import User
 from services.models import Category, Skill
 
+from .forms import ServiceListingCreateForm, ServiceListingUpdateForm
 from .models import CraftsmanProfile, ServiceListing
+
+
+class ServiceListingFormTests(TestCase):
+    def test_create_and_update_forms_expose_existing_categories_and_skills(self):
+        category = Category.objects.create(name="Test Form Category")
+        skill = Skill.objects.create(category=category, name="Test Form Skill")
+        craftsman = User.objects.create_user(
+            username="formcraftsman",
+            email="formcraftsman@example.com",
+            password="StrongPass12345!",
+        )
+        listing = ServiceListing.objects.create(
+            craftsman=craftsman,
+            title="Form listing",
+            description="Listing used for form checks.",
+            rough_price="100.00",
+            category=category,
+        )
+
+        create_form = ServiceListingCreateForm()
+        update_form = ServiceListingUpdateForm(instance=listing)
+
+        self.assertIn(category, create_form.fields["category"].queryset)
+        self.assertIn(skill, create_form.fields["skills"].queryset)
+        self.assertIn(category, update_form.fields["category"].queryset)
+        self.assertIn(skill, update_form.fields["skills"].queryset)
+        self.assertEqual(
+            create_form.fields["skills"].label_from_instance(skill),
+            "Test Form Category - Test Form Skill",
+        )
 
 
 class CraftsmanProfileModelTests(TestCase):
@@ -21,7 +52,7 @@ class CraftsmanProfileModelTests(TestCase):
             email="craftsman1@example.com",
             password="StrongPass12345!",
         )
-        category = Category.objects.create(name="Plumbing")
+        category = Category.objects.create(name="Test Plumbing")
         skill_one = Skill.objects.create(category=category, name="Pipe Repair")
         skill_two = Skill.objects.create(category=category, name="Leak Detection")
 
@@ -63,7 +94,7 @@ class ServiceListingViewTests(TestCase):
         self.craftsman.groups.add(self.craftsmen_group)
         self.client_user.groups.add(self.clients_group)
 
-        self.category = Category.objects.create(name="Plastering")
+        self.category = Category.objects.create(name="Test Plastering")
         self.skill = Skill.objects.create(category=self.category, name="Wall Repair")
         self.listing = ServiceListing.objects.create(
             craftsman=self.craftsman,
