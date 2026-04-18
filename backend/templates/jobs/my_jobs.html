@@ -15,10 +15,23 @@
     {% endif %}
 </div>
 
-<div class="stack">
+<div class="listing-grid">
 {% if job_requests %}
     {% for job_request in job_requests %}
     <article class="listing-card">
+        <div class="listing-card__media">
+            {% for item in job_request.images.all %}
+                {% if forloop.first %}
+                    {% if item.image %}
+                    <img class="listing-card__image" src="{{ item.image.url }}" alt="{{ job_request.title }}">
+                    {% else %}
+                    <div class="listing-card__image listing-card__image--placeholder">Image unavailable</div>
+                    {% endif %}
+                {% endif %}
+            {% empty %}
+            <div class="listing-card__image listing-card__image--placeholder">No image yet</div>
+            {% endfor %}
+        </div>
         <div class="listing-card__header">
             <div>
                 <h2 class="listing-card__title"><a href="{% url 'jobs:job_detail' job_request.pk %}">{{ job_request.title }}</a></h2>

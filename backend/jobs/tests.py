@@ -14,7 +14,7 @@ from accounts.models import User
 from services.models import Category, Skill
 
 from .forms import JobRequestCreateForm
-from .models import JobRequest, Offer
+from .models import JobRequest, JobRequestImage, Offer
 
 
 class JobRequestFormTests(TestCase):
@@ -128,6 +128,27 @@ class JobRequestViewTests(TestCase):
             mocked_upload.assert_called_once()
         else:
             mocked_upload.assert_not_called()
+
+    def test_job_request_form_shows_image_preview_container(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("jobs:job_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="job-request-image-preview"')
+
+    def test_my_jobs_shows_first_reference_image_preview(self):
+        JobRequestImage.objects.create(
+            job_request=self.job_request,
+            image="job_requests/images/fix-light.jpg",
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("jobs:my_jobs"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "listing-card__media")
+        self.assertContains(response, "fix-light")
 
     def test_anonymous_user_cannot_access_job_request_list(self):
         response = self.client.get(reverse("jobs:job_list"))
