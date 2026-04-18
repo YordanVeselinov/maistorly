@@ -139,6 +139,15 @@ class ServiceListingViewTests(TestCase):
         else:
             mocked_upload.assert_not_called()
 
+    def test_service_listing_form_links_to_manual_category_and_skill_creation(self):
+        self.client.force_login(self.craftsman)
+
+        response = self.client.get(reverse("craftsmen:service_listing_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("services:category_create"))
+        self.assertContains(response, reverse("services:skill_create"))
+
     def test_client_cannot_create_service_listing(self):
         self.client.force_login(self.client_user)
 

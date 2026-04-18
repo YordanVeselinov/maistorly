@@ -22,6 +22,16 @@
                 {{ field }}
                 {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
                 {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+                {% if field.name == "categories" %}
+                <div class="actions">
+                    <a class="button button--ghost button--small" href="{% url 'services:category_create' %}?next={{ request.get_full_path|urlencode }}">Add category</a>
+                </div>
+                {% endif %}
+                {% if field.name == "required_skills" %}
+                <div class="actions">
+                    <a class="button button--ghost button--small" href="{% url 'services:skill_create' %}?next={{ request.get_full_path|urlencode }}">Add skill</a>
+                </div>
+                {% endif %}
                 {% if field.name == "images" %}
                 <div id="job-request-image-preview" class="image-preview-grid" aria-live="polite"></div>
                 {% endif %}

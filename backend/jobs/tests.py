@@ -152,6 +152,8 @@ class JobRequestViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="job-request-image-preview"')
+        self.assertContains(response, reverse("services:category_create"))
+        self.assertContains(response, reverse("services:skill_create"))
 
     def test_my_jobs_shows_first_reference_image_preview(self):
         JobRequestImage.objects.create(
