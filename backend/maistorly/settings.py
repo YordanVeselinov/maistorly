@@ -20,8 +20,22 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ENV_FILE = Path(os.getenv("DJANGO_ENV_FILE", BASE_DIR / ".env"))
-load_dotenv(ENV_FILE)
+DEFAULT_ENV_FILE = BASE_DIR / ".env"
+
+
+def resolve_env_file():
+    env_file = os.getenv("DJANGO_ENV_FILE")
+    if not env_file:
+        return DEFAULT_ENV_FILE
+
+    env_file_path = Path(env_file).expanduser()
+    if env_file_path.is_absolute():
+        return env_file_path
+    return BASE_DIR / env_file_path
+
+
+ENV_FILE = resolve_env_file()
+load_dotenv(dotenv_path=ENV_FILE)
 
 
 def get_cloudinary_env(name):
@@ -173,21 +187,29 @@ STATIC_ROOT = BASE_DIR / os.getenv("STATIC_ROOT", "staticfiles")
 MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
 MEDIA_ROOT = BASE_DIR / os.getenv("MEDIA_ROOT", "media")
 
+CLOUDINARY_REQUIRED_ENV = (
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+)
 CLOUDINARY_CLOUD_NAME = get_cloudinary_env("CLOUDINARY_CLOUD_NAME")
 CLOUDINARY_API_KEY = get_cloudinary_env("CLOUDINARY_API_KEY")
 CLOUDINARY_API_SECRET = get_cloudinary_env("CLOUDINARY_API_SECRET")
-CLOUDINARY_REQUIRED_ENV = {
+CLOUDINARY_ENV = {
     "CLOUDINARY_CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
     "CLOUDINARY_API_KEY": CLOUDINARY_API_KEY,
     "CLOUDINARY_API_SECRET": CLOUDINARY_API_SECRET,
 }
 CLOUDINARY_MISSING_ENV = [
-    name for name, value in CLOUDINARY_REQUIRED_ENV.items() if value is None
+    name for name in CLOUDINARY_REQUIRED_ENV if CLOUDINARY_ENV[name] is None
 ]
 if CLOUDINARY_MISSING_ENV:
     raise ImproperlyConfigured(
-        "Missing Cloudinary environment variables: "
+        "Missing required Cloudinary environment variable(s): "
         + ", ".join(CLOUDINARY_MISSING_ENV)
+        + f". Add them to {ENV_FILE} or export them before starting Django. "
+        + "Expected names: "
+        + ", ".join(CLOUDINARY_REQUIRED_ENV)
     )
 
 CLOUDINARY_STORAGE = {
