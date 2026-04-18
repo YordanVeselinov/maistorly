@@ -302,6 +302,15 @@ class OfferViewTests(TestCase):
             preferred_date=timezone.localdate() + timedelta(days=2),
         )
 
+    def create_offer(self):
+        return Offer.objects.create(
+            job_request=self.job_request,
+            craftsman=self.craftsman,
+            message="Counter-offer message",
+            proposed_price="130.00",
+            estimated_days=2,
+        )
+
     @patch("jobs.views.send_offer_notification_email.delay")
     def test_craftsman_can_create_offer(self, mocked_delay):
         self.client.force_login(self.craftsman)
@@ -345,6 +354,52 @@ class OfferViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_job_owner_can_accept_received_offer_and_offer_is_deleted(self):
+        offer = self.create_offer()
+        self.client.force_login(self.owner)
+
+        response = self.client.post(
+            reverse("jobs:offer_accept", kwargs={"pk": offer.pk}),
+            data={"next": reverse("jobs:my_received_offers")},
+        )
+
+        self.assertRedirects(response, reverse("jobs:my_received_offers"))
+        self.assertFalse(Offer.objects.filter(pk=offer.pk).exists())
+
+    def test_job_owner_can_decline_received_offer_and_offer_is_deleted(self):
+        offer = self.create_offer()
+        self.client.force_login(self.owner)
+
+        response = self.client.post(
+            reverse("jobs:offer_decline", kwargs={"pk": offer.pk}),
+            data={"next": reverse("jobs:my_received_offers")},
+        )
+
+        self.assertRedirects(response, reverse("jobs:my_received_offers"))
+        self.assertFalse(Offer.objects.filter(pk=offer.pk).exists())
+
+    def test_other_customer_cannot_accept_or_decline_received_offer(self):
+        offer = self.create_offer()
+        self.client.force_login(self.client_user)
+
+        for url_name in ("jobs:offer_accept", "jobs:offer_decline"):
+            with self.subTest(url_name=url_name):
+                response = self.client.post(reverse(url_name, kwargs={"pk": offer.pk}))
+
+                self.assertEqual(response.status_code, 403)
+                self.assertTrue(Offer.objects.filter(pk=offer.pk).exists())
+
+    def test_offer_craftsman_cannot_accept_or_decline_own_counter_offer(self):
+        offer = self.create_offer()
+        self.client.force_login(self.craftsman)
+
+        for url_name in ("jobs:offer_accept", "jobs:offer_decline"):
+            with self.subTest(url_name=url_name):
+                response = self.client.post(reverse(url_name, kwargs={"pk": offer.pk}))
+
+                self.assertEqual(response.status_code, 403)
+                self.assertTrue(Offer.objects.filter(pk=offer.pk).exists())
+
     def test_job_owner_cannot_create_offer_even_if_in_craftsmen_group(self):
         craftsmen_group, _ = Group.objects.get_or_create(name=CRAFTSMEN_GROUP)
         self.owner.groups.add(craftsmen_group)
@@ -364,18 +419,14 @@ class OfferViewTests(TestCase):
         self.assertFalse(Offer.objects.filter(job_request=self.job_request, craftsman=self.owner).exists())
 
     def test_only_job_owner_sees_received_offers_in_job_detail(self):
-        Offer.objects.create(
-            job_request=self.job_request,
-            craftsman=self.craftsman,
-            message="Counter-offer message",
-            proposed_price="130.00",
-            estimated_days=2,
-        )
+        offer = self.create_offer()
 
         self.client.force_login(self.owner)
         owner_response = self.client.get(reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk}))
         self.assertContains(owner_response, "Received Counter-Offers")
         self.assertContains(owner_response, "Counter-offer message")
+        self.assertContains(owner_response, reverse("jobs:offer_accept", kwargs={"pk": offer.pk}))
+        self.assertContains(owner_response, reverse("jobs:offer_decline", kwargs={"pk": offer.pk}))
 
         self.client.force_login(self.craftsman)
         craftsman_response = self.client.get(reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk}))
@@ -383,13 +434,7 @@ class OfferViewTests(TestCase):
         self.assertNotContains(craftsman_response, "Counter-offer message")
 
     def test_job_owner_can_access_my_received_offers_page(self):
-        Offer.objects.create(
-            job_request=self.job_request,
-            craftsman=self.craftsman,
-            message="Counter-offer message",
-            proposed_price="130.00",
-            estimated_days=2,
-        )
+        offer = self.create_offer()
         self.client.force_login(self.owner)
 
         response = self.client.get(reverse("jobs:my_received_offers"))
@@ -397,6 +442,8 @@ class OfferViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "My Received Offers")
         self.assertContains(response, "Counter-offer message")
+        self.assertContains(response, reverse("jobs:offer_accept", kwargs={"pk": offer.pk}))
+        self.assertContains(response, reverse("jobs:offer_decline", kwargs={"pk": offer.pk}))
 
     def test_craftsman_cannot_access_my_received_offers_page(self):
         self.client.force_login(self.craftsman)

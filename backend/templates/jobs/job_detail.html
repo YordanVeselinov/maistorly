@@ -99,6 +99,16 @@
                 <div><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
             </div>
             <div class="actions">
+                <form method="post" action="{% url 'jobs:offer_accept' offer.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="button button--primary button--small" type="submit">Accept</button>
+                </form>
+                <form method="post" action="{% url 'jobs:offer_decline' offer.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="button button--danger button--small" type="submit">Decline</button>
+                </form>
                 {% if craftsman_profile %}
                 <a class="button button--ghost button--small" href="{% url 'craftsmen:craftsman_detail' craftsman_profile.pk %}">View craftsman profile</a>
                 {% endif %}

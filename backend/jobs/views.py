@@ -1,8 +1,12 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Q
 from django.http import Http404
+from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+from django.views.generic.base import View
 
 from accounts.signals import CLIENTS_GROUP, CRAFTSMEN_GROUP
 
@@ -280,6 +284,53 @@ class OfferCreateView(CraftsmanRequiredMixin, CreateView):
         context["page_title"] = "Submit Counter-Offer"
         context["submit_label"] = "Submit counter-offer"
         return context
+
+
+class OfferDecisionView(LoginRequiredMixin, UserPassesTestMixin, View):
+    action_message = "Counter-offer updated."
+    raise_exception = True
+    http_method_names = ["post"]
+
+    def dispatch(self, request, *args, **kwargs):
+        self.offer = (
+            Offer.objects.select_related("job_request", "craftsman")
+            .filter(pk=kwargs["pk"])
+            .first()
+        )
+        if self.offer is None:
+            raise Http404("Counter-offer not found.")
+        return super().dispatch(request, *args, **kwargs)
+
+    def test_func(self):
+        user = self.request.user
+        return (
+            self.offer.job_request.owner_id == user.id
+            and self.offer.craftsman_id != user.id
+        )
+
+    def get_success_url(self):
+        next_url = self.request.POST.get("next", "")
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return next_url
+        return reverse("jobs:my_received_offers")
+
+    def post(self, request, *args, **kwargs):
+        success_url = self.get_success_url()
+        self.offer.delete()
+        messages.success(request, self.action_message)
+        return redirect(success_url)
+
+
+class OfferAcceptView(OfferDecisionView):
+    action_message = "Counter-offer accepted and removed."
+
+
+class OfferDeclineView(OfferDecisionView):
+    action_message = "Counter-offer declined and removed."
 
 
 class MyOffersListView(CraftsmanRequiredMixin, ListView):

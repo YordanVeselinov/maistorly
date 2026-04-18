@@ -30,7 +30,19 @@
             <div><strong>Estimated time:</strong> {{ offer.estimated_days|default:"Not specified" }}{% if offer.estimated_days %} days{% endif %}</div>
         </div>
         <p>{{ offer.message }}</p>
-        <a class="button button--ghost button--small" href="{% url 'jobs:job_detail' offer.job_request.pk %}">Open customer request</a>
+        <div class="actions">
+            <form method="post" action="{% url 'jobs:offer_accept' offer.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="button button--primary button--small" type="submit">Accept</button>
+            </form>
+            <form method="post" action="{% url 'jobs:offer_decline' offer.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="button button--danger button--small" type="submit">Decline</button>
+            </form>
+            <a class="button button--ghost button--small" href="{% url 'jobs:job_detail' offer.job_request.pk %}">Open customer request</a>
+        </div>
     </article>
     {% endfor %}
 {% else %}

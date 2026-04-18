@@ -9,7 +9,9 @@ from .views import (
     MyJobRequestListView,
     MyReceivedOffersListView,
     MyOffersListView,
+    OfferAcceptView,
     OfferCreateView,
+    OfferDeclineView,
 )
 
 app_name = "jobs"
@@ -20,6 +22,8 @@ urlpatterns = [
     path("offers/received/", MyReceivedOffersListView.as_view(), name="my_received_offers"),
     path("create/", JobRequestCreateView.as_view(), name="job_create"),
     path("offers/mine/", MyOffersListView.as_view(), name="my_offers"),
+    path("offers/<int:pk>/accept/", OfferAcceptView.as_view(), name="offer_accept"),
+    path("offers/<int:pk>/decline/", OfferDeclineView.as_view(), name="offer_decline"),
     path("<int:pk>/", JobRequestDetailView.as_view(), name="job_detail"),
     path("<int:pk>/edit/", JobRequestUpdateView.as_view(), name="job_update"),
     path("<int:pk>/delete/", JobRequestDeleteView.as_view(), name="job_delete"),
