@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from cloudinary import CloudinaryResource
 from django.contrib.auth.models import Group
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -102,7 +103,10 @@ class ServiceListingViewTests(TestCase):
         listing = ServiceListing.objects.get(title="Wall crack repair")
         self.assertEqual(listing.craftsman, self.craftsman)
         self.assertEqual(listing.images.count(), 1)
-        mocked_upload.assert_called_once()
+        if settings.CLOUDINARY_ENABLED:
+            mocked_upload.assert_called_once()
+        else:
+            mocked_upload.assert_not_called()
 
     def test_client_cannot_create_service_listing(self):
         self.client.force_login(self.client_user)

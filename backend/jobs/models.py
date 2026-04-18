@@ -7,6 +7,28 @@ from django.utils import timezone
 
 from services.models import Category, Skill
 
+IMAGE_VALIDATORS = [
+    FileExtensionValidator(
+        allowed_extensions=["jpg", "jpeg", "png", "webp"],
+    )
+]
+
+
+def job_request_image_field():
+    if settings.CLOUDINARY_ENABLED:
+        return CloudinaryField(
+            "image",
+            folder="job_requests/images",
+            resource_type="image",
+            validators=IMAGE_VALIDATORS,
+        )
+
+    return models.FileField(
+        upload_to="job_requests/images/",
+        max_length=255,
+        validators=IMAGE_VALIDATORS,
+    )
+
 
 class JobRequest(models.Model):
     class Status(models.TextChoices):
@@ -92,16 +114,7 @@ class JobRequestImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = CloudinaryField(
-        "image",
-        folder="job_requests/images",
-        resource_type="image",
-        validators=[
-            FileExtensionValidator(
-                allowed_extensions=["jpg", "jpeg", "png", "webp"],
-            )
-        ],
-    )
+    image = job_request_image_field()
     caption = models.CharField(
         max_length=200,
         blank=True,

@@ -205,6 +205,7 @@ CLOUDINARY_ENV = {
 CLOUDINARY_MISSING_ENV = [
     name for name in CLOUDINARY_REQUIRED_ENV if CLOUDINARY_ENV[name] is None
 ]
+CLOUDINARY_ENABLED = not CLOUDINARY_MISSING_ENV
 if CLOUDINARY_MISSING_ENV and not DEBUG:
     raise ImproperlyConfigured(
         "Missing required Cloudinary environment variable(s): "

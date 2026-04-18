@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from cloudinary import CloudinaryResource
 from django.contrib.auth.models import Group
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -123,7 +124,10 @@ class JobRequestViewTests(TestCase):
         job_request = JobRequest.objects.get(title="Install faucet")
         self.assertEqual(job_request.owner, self.other_user)
         self.assertEqual(job_request.images.count(), 1)
-        mocked_upload.assert_called_once()
+        if settings.CLOUDINARY_ENABLED:
+            mocked_upload.assert_called_once()
+        else:
+            mocked_upload.assert_not_called()
 
     def test_anonymous_user_cannot_access_job_request_list(self):
         response = self.client.get(reverse("jobs:job_list"))

@@ -5,6 +5,28 @@ from django.db import models
 
 from services.models import Category, Skill
 
+IMAGE_VALIDATORS = [
+    FileExtensionValidator(
+        allowed_extensions=["jpg", "jpeg", "png", "webp"],
+    )
+]
+
+
+def service_listing_image_field():
+    if settings.CLOUDINARY_ENABLED:
+        return CloudinaryField(
+            "image",
+            folder="service_listings/images",
+            resource_type="image",
+            validators=IMAGE_VALIDATORS,
+        )
+
+    return models.FileField(
+        upload_to="service_listings/images/",
+        max_length=255,
+        validators=IMAGE_VALIDATORS,
+    )
+
 
 class CraftsmanProfile(models.Model):
     user = models.OneToOneField(
@@ -88,16 +110,7 @@ class ServiceListingImage(models.Model):
         on_delete=models.CASCADE,
         related_name="images",
     )
-    image = CloudinaryField(
-        "image",
-        folder="service_listings/images",
-        resource_type="image",
-        validators=[
-            FileExtensionValidator(
-                allowed_extensions=["jpg", "jpeg", "png", "webp"],
-            )
-        ],
-    )
+    image = service_listing_image_field()
     caption = models.CharField(
         max_length=200,
         blank=True,
