@@ -35,7 +35,7 @@ def resolve_env_file():
 
 
 ENV_FILE = resolve_env_file()
-load_dotenv(dotenv_path=ENV_FILE)
+load_dotenv(dotenv_path=ENV_FILE, override=True)
 
 
 def get_cloudinary_env(name):
@@ -56,7 +56,9 @@ DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes", "on")
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "").split(",")
+    for host in (
+        os.getenv("ALLOWED_HOSTS") or "127.0.0.1,localhost,[::1]"
+    ).split(",")
     if host.strip()
 ]
 
@@ -203,7 +205,7 @@ CLOUDINARY_ENV = {
 CLOUDINARY_MISSING_ENV = [
     name for name in CLOUDINARY_REQUIRED_ENV if CLOUDINARY_ENV[name] is None
 ]
-if CLOUDINARY_MISSING_ENV:
+if CLOUDINARY_MISSING_ENV and not DEBUG:
     raise ImproperlyConfigured(
         "Missing required Cloudinary environment variable(s): "
         + ", ".join(CLOUDINARY_MISSING_ENV)
@@ -212,28 +214,38 @@ if CLOUDINARY_MISSING_ENV:
         + ", ".join(CLOUDINARY_REQUIRED_ENV)
     )
 
-CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
-    "API_KEY": CLOUDINARY_API_KEY,
-    "API_SECRET": CLOUDINARY_API_SECRET,
-    "SECURE": True,
-}
+if CLOUDINARY_MISSING_ENV:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
+        "API_KEY": CLOUDINARY_API_KEY,
+        "API_SECRET": CLOUDINARY_API_SECRET,
+        "SECURE": True,
+    }
 
-cloudinary.config(
-    cloud_name=CLOUDINARY_CLOUD_NAME,
-    api_key=CLOUDINARY_API_KEY,
-    api_secret=CLOUDINARY_API_SECRET,
-    secure=True,
-)
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True,
+    )
 
-STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
 
 EMAIL_BACKEND = os.getenv(
     "EMAIL_BACKEND",
