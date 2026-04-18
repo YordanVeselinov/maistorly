@@ -22,6 +22,9 @@
                 {{ field }}
                 {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
                 {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+                {% if field.name == "images" %}
+                <div id="service-listing-image-preview" class="image-preview-grid" aria-live="polite"></div>
+                {% endif %}
             </div>
             {% endfor %}
             <div class="actions">
@@ -31,4 +34,42 @@
         </form>
     </section>
 </div>
+<script>
+    (function () {
+        const imageInput = document.querySelector('input[type="file"][name="images"]');
+        const previewGrid = document.getElementById("service-listing-image-preview");
+        let previewUrls = [];
+
+        if (!imageInput || !previewGrid) {
+            return;
+        }
+
+        function clearPreviews() {
+            previewUrls.forEach(function (url) {
+                URL.revokeObjectURL(url);
+            });
+            previewUrls = [];
+            previewGrid.replaceChildren();
+        }
+
+        imageInput.addEventListener("change", function () {
+            clearPreviews();
+
+            Array.from(imageInput.files).forEach(function (file) {
+                if (!file.type.startsWith("image/")) {
+                    return;
+                }
+
+                const imageUrl = URL.createObjectURL(file);
+                const image = document.createElement("img");
+                image.className = "image-preview";
+                image.src = imageUrl;
+                image.alt = file.name;
+
+                previewUrls.push(imageUrl);
+                previewGrid.appendChild(image);
+            });
+        });
+    })();
+</script>
 {% endblock %}
