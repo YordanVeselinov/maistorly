@@ -15,6 +15,21 @@
     <div class="listing-grid">
         {% for service_listing in service_listings %}
         <article class="listing-card">
+            <div class="listing-card__media">
+                {% for item in service_listing.images.all %}
+                    {% if forloop.first %}
+                        {% if item.image %}
+                        <a href="{% url 'craftsmen:service_listing_detail' service_listing.pk %}" aria-label="View {{ service_listing.title }}">
+                            <img class="listing-card__image" src="{{ item.image.url }}" alt="{{ service_listing.title }}">
+                        </a>
+                        {% else %}
+                        <div class="listing-card__image listing-card__image--placeholder">Image unavailable</div>
+                        {% endif %}
+                    {% endif %}
+                {% empty %}
+                <div class="listing-card__image listing-card__image--placeholder">No image yet</div>
+                {% endfor %}
+            </div>
             <h2 class="listing-card__title">
                 <a href="{% url 'craftsmen:service_listing_detail' service_listing.pk %}">{{ service_listing.title }}</a>
             </h2>

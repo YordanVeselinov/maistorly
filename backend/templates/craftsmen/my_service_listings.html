@@ -16,6 +16,19 @@
     <div class="listing-grid">
         {% for service_listing in service_listings %}
         <article class="listing-card">
+            <div class="listing-card__media">
+                {% for item in service_listing.images.all %}
+                    {% if forloop.first %}
+                        {% if item.image %}
+                        <img class="listing-card__image" src="{{ item.image.url }}" alt="{{ service_listing.title }}">
+                        {% else %}
+                        <div class="listing-card__image listing-card__image--placeholder">Image unavailable</div>
+                        {% endif %}
+                    {% endif %}
+                {% empty %}
+                <div class="listing-card__image listing-card__image--placeholder">No image yet</div>
+                {% endfor %}
+            </div>
             <h2 class="listing-card__title">{{ service_listing.title }}</h2>
             <p class="muted">{{ service_listing.description|truncatewords:24 }}</p>
             <p><strong>Starting price:</strong> {{ service_listing.rough_price }}</p>

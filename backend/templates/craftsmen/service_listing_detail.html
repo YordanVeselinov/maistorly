@@ -41,7 +41,7 @@
         <div class="gallery-grid">
             {% for item in service_listing.images.all %}
             {% if item.image %}
-            <a href="{{ item.image.url }}" target="_blank" rel="noopener">
+            <a class="gallery-link" href="{{ item.image.url }}" target="_blank" rel="noopener">
                 <img class="gallery-image" src="{{ item.image.url }}" alt="{{ service_listing.title }}">
             </a>
             {% else %}
