@@ -315,7 +315,7 @@ class OfferViewTests(TestCase):
             },
         )
 
-        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("jobs:job_list"))
         offer = Offer.objects.get(job_request=self.job_request, craftsman=self.craftsman)
         self.assertEqual(offer.proposed_price, 140)
         mocked_delay.assert_called_once_with(offer.pk)
@@ -333,7 +333,7 @@ class OfferViewTests(TestCase):
             },
         )
 
-        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("jobs:job_list"))
         offer = Offer.objects.get(job_request=self.job_request, craftsman=self.craftsman)
         self.assertIsNone(offer.estimated_days)
         mocked_delay.assert_called_once_with(offer.pk)

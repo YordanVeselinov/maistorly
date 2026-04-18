@@ -267,7 +267,7 @@ class OfferCreateView(CraftsmanRequiredMixin, CreateView):
         return kwargs
 
     def get_success_url(self):
-        return reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk})
+        return reverse("jobs:job_list")
 
     def form_valid(self, form):
         response = super().form_valid(form)
