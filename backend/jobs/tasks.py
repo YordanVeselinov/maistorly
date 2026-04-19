@@ -33,3 +33,33 @@ def send_offer_notification_email(offer_id):
         fail_silently=False,
     )
     return "email-sent"
+
+
+@shared_task
+def send_offer_decision_notification_email(offer_id):
+    offer = (
+        Offer.objects.select_related("job_request", "craftsman", "job_request__owner")
+        .filter(pk=offer_id)
+        .first()
+    )
+    if offer is None:
+        return "offer-not-found"
+
+    craftsman_email = offer.craftsman.email
+    if not craftsman_email:
+        return "craftsman-email-missing"
+
+    decision = "accepted" if offer.status == Offer.Status.ACCEPTED else "declined"
+
+    send_mail(
+        subject=f"Your offer for {offer.job_request.title} was {decision}",
+        message=(
+            f"The customer has {decision} your counter-offer for "
+            f"\"{offer.job_request.title}\".\n\n"
+            f"Proposed price: {offer.proposed_price}\n"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[craftsman_email],
+        fail_silently=False,
+    )
+    return "email-sent"

@@ -15,6 +15,7 @@ from services.models import Category, Skill
 
 from .forms import JobRequestCreateForm, JobRequestUpdateForm
 from .models import JobRequest, JobRequestImage, Offer
+from .tasks import send_offer_decision_notification_email
 
 
 class JobRequestFormTests(TestCase):
@@ -354,7 +355,8 @@ class OfferViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_job_owner_can_accept_received_offer_and_status_is_preserved(self):
+    @patch("jobs.views.send_offer_decision_notification_email.delay")
+    def test_job_owner_can_accept_received_offer_and_status_is_preserved(self, mocked_delay):
         offer = self.create_offer()
         self.client.force_login(self.owner)
 
@@ -366,6 +368,7 @@ class OfferViewTests(TestCase):
         self.assertRedirects(response, reverse("jobs:my_received_offers"))
         offer.refresh_from_db()
         self.assertEqual(offer.status, Offer.Status.ACCEPTED)
+        mocked_delay.assert_called_once_with(offer.pk)
 
         self.client.force_login(self.craftsman)
         sent_offers_response = self.client.get(reverse("jobs:my_offers"))
@@ -379,7 +382,8 @@ class OfferViewTests(TestCase):
         self.assertContains(detail_response, "Counter-offer message")
         self.assertContains(detail_response, "Accepted")
 
-    def test_job_owner_can_decline_received_offer_and_status_is_preserved(self):
+    @patch("jobs.views.send_offer_decision_notification_email.delay")
+    def test_job_owner_can_decline_received_offer_and_status_is_preserved(self, mocked_delay):
         offer = self.create_offer()
         self.client.force_login(self.owner)
 
@@ -391,6 +395,7 @@ class OfferViewTests(TestCase):
         self.assertRedirects(response, reverse("jobs:my_received_offers"))
         offer.refresh_from_db()
         self.assertEqual(offer.status, Offer.Status.REJECTED)
+        mocked_delay.assert_called_once_with(offer.pk)
 
         self.client.force_login(self.craftsman)
         sent_offers_response = self.client.get(reverse("jobs:my_offers"))
@@ -415,6 +420,37 @@ class OfferViewTests(TestCase):
         self.assertEqual(response.status_code, 403)
         offer.refresh_from_db()
         self.assertEqual(offer.status, Offer.Status.ACCEPTED)
+
+    @patch("jobs.tasks.send_mail")
+    def test_offer_decision_notification_email_includes_decision_context(self, mocked_send_mail):
+        offer = self.create_offer()
+        offer.status = Offer.Status.ACCEPTED
+        offer.save(update_fields=["status", "updated_at"])
+
+        result = send_offer_decision_notification_email(offer.pk)
+
+        self.assertEqual(result, "email-sent")
+        mocked_send_mail.assert_called_once()
+        _, kwargs = mocked_send_mail.call_args
+        self.assertIn(self.job_request.title, kwargs["subject"])
+        self.assertIn("accepted", kwargs["subject"])
+        self.assertIn(self.job_request.title, kwargs["message"])
+        self.assertIn("accepted", kwargs["message"])
+        self.assertIn(str(offer.proposed_price), kwargs["message"])
+        self.assertEqual(kwargs["recipient_list"], [self.craftsman.email])
+
+    @patch("jobs.tasks.send_mail")
+    def test_offer_decision_notification_email_uses_declined_wording(self, mocked_send_mail):
+        offer = self.create_offer()
+        offer.status = Offer.Status.REJECTED
+        offer.save(update_fields=["status", "updated_at"])
+
+        result = send_offer_decision_notification_email(offer.pk)
+
+        self.assertEqual(result, "email-sent")
+        _, kwargs = mocked_send_mail.call_args
+        self.assertIn("declined", kwargs["subject"])
+        self.assertIn("declined", kwargs["message"])
 
     def test_other_customer_cannot_accept_or_decline_received_offer(self):
         offer = self.create_offer()

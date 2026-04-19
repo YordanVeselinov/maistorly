@@ -21,7 +21,7 @@ from .models import JobRequest, JobRequestImage, Offer
 from craftsmen.models import CraftsmanProfile
 from reviews.models import Review
 from services.models import Category
-from .tasks import send_offer_notification_email
+from .tasks import send_offer_decision_notification_email, send_offer_notification_email
 
 
 class ClientRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -325,6 +325,7 @@ class OfferDecisionView(LoginRequiredMixin, UserPassesTestMixin, View):
         success_url = self.get_success_url()
         self.offer.status = self.decision_status
         self.offer.save(update_fields=["status", "updated_at"])
+        send_offer_decision_notification_email.delay(self.offer.pk)
         messages.success(request, self.action_message)
         return redirect(success_url)
 
