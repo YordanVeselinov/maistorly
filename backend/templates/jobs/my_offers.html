@@ -28,7 +28,10 @@
             <div><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
         </div>
         <p>{{ offer.message }}</p>
-        <a class="button button--ghost button--small" href="{% url 'jobs:job_detail' offer.job_request.pk %}">View job request</a>
+        <div class="actions">
+            <a class="button button--ghost button--small" href="{% url 'jobs:job_detail' offer.job_request.pk %}">View job request</a>
+            <a class="button button--danger button--small" href="{% url 'jobs:offer_delete' offer.pk %}">Delete offer</a>
+        </div>
     </article>
     {% endfor %}
 {% else %}

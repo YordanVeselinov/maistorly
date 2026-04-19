@@ -400,6 +400,79 @@ class OfferViewTests(TestCase):
                 self.assertEqual(response.status_code, 403)
                 self.assertTrue(Offer.objects.filter(pk=offer.pk).exists())
 
+    def test_craftsman_can_open_delete_confirmation_for_own_sent_offer(self):
+        offer = self.create_offer()
+        self.client.force_login(self.craftsman)
+
+        response = self.client.get(reverse("jobs:offer_delete", kwargs={"pk": offer.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Delete counter-offer")
+        self.assertContains(response, self.job_request.title)
+
+    def test_craftsman_can_delete_own_sent_offer(self):
+        offer = self.create_offer()
+        self.client.force_login(self.craftsman)
+
+        response = self.client.post(
+            reverse("jobs:offer_delete", kwargs={"pk": offer.pk}),
+            data={"confirm": True},
+        )
+
+        self.assertRedirects(response, reverse("jobs:my_offers"))
+        self.assertFalse(Offer.objects.filter(pk=offer.pk).exists())
+
+    def test_other_users_cannot_delete_craftsmans_sent_offer(self):
+        other_craftsman = User.objects.create_user(
+            username="othercraftsman",
+            email="othercraftsman@example.com",
+            password="StrongPass12345!",
+        )
+        other_craftsman.groups.add(Group.objects.get(name=CRAFTSMEN_GROUP))
+        offer = self.create_offer()
+
+        for user in (self.owner, self.client_user, other_craftsman):
+            with self.subTest(user=user.username):
+                self.client.force_login(user)
+                response = self.client.post(
+                    reverse("jobs:offer_delete", kwargs={"pk": offer.pk}),
+                    data={"confirm": True},
+                )
+
+                self.assertIn(response.status_code, (403, 404))
+                self.assertTrue(Offer.objects.filter(pk=offer.pk).exists())
+
+    def test_deleted_offer_disappears_from_sent_offers(self):
+        offer = self.create_offer()
+        self.client.force_login(self.craftsman)
+        self.client.post(
+            reverse("jobs:offer_delete", kwargs={"pk": offer.pk}),
+            data={"confirm": True},
+        )
+
+        response = self.client.get(reverse("jobs:my_offers"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Counter-offer message")
+        self.assertContains(response, "No sent offers yet.")
+
+    def test_deleted_offer_is_removed_from_related_request_context(self):
+        offer = self.create_offer()
+        self.client.force_login(self.craftsman)
+        self.client.post(
+            reverse("jobs:offer_delete", kwargs={"pk": offer.pk}),
+            data={"confirm": True},
+        )
+
+        self.client.force_login(self.owner)
+        response = self.client.get(
+            reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Counter-offer message")
+        self.assertContains(response, "No counter-offers received yet.")
+
     def test_job_owner_cannot_create_offer_even_if_in_craftsmen_group(self):
         craftsmen_group, _ = Group.objects.get_or_create(name=CRAFTSMEN_GROUP)
         self.owner.groups.add(craftsmen_group)
@@ -444,6 +517,15 @@ class OfferViewTests(TestCase):
         self.assertContains(response, "Counter-offer message")
         self.assertContains(response, reverse("jobs:offer_accept", kwargs={"pk": offer.pk}))
         self.assertContains(response, reverse("jobs:offer_decline", kwargs={"pk": offer.pk}))
+
+    def test_craftsman_sent_offers_page_links_to_offer_delete(self):
+        offer = self.create_offer()
+        self.client.force_login(self.craftsman)
+
+        response = self.client.get(reverse("jobs:my_offers"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("jobs:offer_delete", kwargs={"pk": offer.pk}))
 
     def test_craftsman_cannot_access_my_received_offers_page(self):
         self.client.force_login(self.craftsman)

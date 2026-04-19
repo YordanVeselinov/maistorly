@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Counter-Offer{% endblock %}
+
+{% block content %}
+<div class="form-shell">
+    <section class="surface">
+        <h1>Delete counter-offer</h1>
+        <p class="muted">
+            You are about to delete your counter-offer for
+            <strong>{{ offer.job_request.title }}</strong>. This action cannot be undone.
+        </p>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+            <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<span class="help-text">{{ field.help_text }}</span>{% endif %}
+                {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="actions">
+                <button type="submit" class="button button--danger">Delete offer</button>
+                <a class="button button--ghost" href="{% url 'jobs:my_offers' %}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

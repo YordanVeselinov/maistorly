@@ -15,6 +15,7 @@ from .forms import (
     JobRequestDeleteConfirmForm,
     JobRequestUpdateForm,
     OfferCreateForm,
+    OfferDeleteConfirmForm,
 )
 from .models import JobRequest, JobRequestImage, Offer
 from craftsmen.models import CraftsmanProfile
@@ -343,6 +344,33 @@ class MyOffersListView(CraftsmanRequiredMixin, ListView):
             "job_request",
             "job_request__owner",
         )
+
+
+class OfferDeleteView(CraftsmanRequiredMixin, DeleteView):
+    model = Offer
+    form_class = OfferDeleteConfirmForm
+    template_name = "jobs/offer_confirm_delete.html"
+    success_url = reverse_lazy("jobs:my_offers")
+
+    def get_queryset(self):
+        return Offer.objects.filter(craftsman=self.request.user).select_related(
+            "job_request",
+            "job_request__owner",
+        )
+
+    def form_valid(self, form):
+        messages.success(self.request, "Counter-offer deleted.")
+        return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["instance"] = self.object
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["offer"] = self.object
+        return context
 
 
 class MyReceivedOffersListView(ClientRequiredMixin, ListView):
