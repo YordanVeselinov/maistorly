@@ -99,6 +99,7 @@
                 <div><strong>Estimated days:</strong> {{ offer.estimated_days|default:"Not specified" }}</div>
             </div>
             <div class="actions">
+                {% if offer.status == "pending" %}
                 <form method="post" action="{% url 'jobs:offer_accept' offer.pk %}">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
@@ -109,6 +110,7 @@
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
                     <button class="button button--danger button--small" type="submit">Decline</button>
                 </form>
+                {% endif %}
                 {% if craftsman_profile %}
                 <a class="button button--ghost button--small" href="{% url 'craftsmen:craftsman_detail' craftsman_profile.pk %}">View craftsman profile</a>
                 {% endif %}

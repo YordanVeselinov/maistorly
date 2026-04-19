@@ -289,6 +289,7 @@ class OfferCreateView(CraftsmanRequiredMixin, CreateView):
 
 class OfferDecisionView(LoginRequiredMixin, UserPassesTestMixin, View):
     action_message = "Counter-offer updated."
+    decision_status = None
     raise_exception = True
     http_method_names = ["post"]
 
@@ -307,6 +308,7 @@ class OfferDecisionView(LoginRequiredMixin, UserPassesTestMixin, View):
         return (
             self.offer.job_request.owner_id == user.id
             and self.offer.craftsman_id != user.id
+            and self.offer.status == Offer.Status.PENDING
         )
 
     def get_success_url(self):
@@ -321,17 +323,20 @@ class OfferDecisionView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def post(self, request, *args, **kwargs):
         success_url = self.get_success_url()
-        self.offer.delete()
+        self.offer.status = self.decision_status
+        self.offer.save(update_fields=["status", "updated_at"])
         messages.success(request, self.action_message)
         return redirect(success_url)
 
 
 class OfferAcceptView(OfferDecisionView):
-    action_message = "Counter-offer accepted and removed."
+    action_message = "Counter-offer accepted."
+    decision_status = Offer.Status.ACCEPTED
 
 
 class OfferDeclineView(OfferDecisionView):
-    action_message = "Counter-offer declined and removed."
+    action_message = "Counter-offer declined."
+    decision_status = Offer.Status.REJECTED
 
 
 class MyOffersListView(CraftsmanRequiredMixin, ListView):

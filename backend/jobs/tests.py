@@ -354,7 +354,7 @@ class OfferViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_job_owner_can_accept_received_offer_and_offer_is_deleted(self):
+    def test_job_owner_can_accept_received_offer_and_status_is_preserved(self):
         offer = self.create_offer()
         self.client.force_login(self.owner)
 
@@ -364,9 +364,22 @@ class OfferViewTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("jobs:my_received_offers"))
-        self.assertFalse(Offer.objects.filter(pk=offer.pk).exists())
+        offer.refresh_from_db()
+        self.assertEqual(offer.status, Offer.Status.ACCEPTED)
 
-    def test_job_owner_can_decline_received_offer_and_offer_is_deleted(self):
+        self.client.force_login(self.craftsman)
+        sent_offers_response = self.client.get(reverse("jobs:my_offers"))
+        self.assertContains(sent_offers_response, "Counter-offer message")
+        self.assertContains(sent_offers_response, "Accepted")
+
+        self.client.force_login(self.owner)
+        detail_response = self.client.get(
+            reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk})
+        )
+        self.assertContains(detail_response, "Counter-offer message")
+        self.assertContains(detail_response, "Accepted")
+
+    def test_job_owner_can_decline_received_offer_and_status_is_preserved(self):
         offer = self.create_offer()
         self.client.force_login(self.owner)
 
@@ -376,7 +389,32 @@ class OfferViewTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("jobs:my_received_offers"))
-        self.assertFalse(Offer.objects.filter(pk=offer.pk).exists())
+        offer.refresh_from_db()
+        self.assertEqual(offer.status, Offer.Status.REJECTED)
+
+        self.client.force_login(self.craftsman)
+        sent_offers_response = self.client.get(reverse("jobs:my_offers"))
+        self.assertContains(sent_offers_response, "Counter-offer message")
+        self.assertContains(sent_offers_response, "Rejected")
+
+        self.client.force_login(self.owner)
+        detail_response = self.client.get(
+            reverse("jobs:job_detail", kwargs={"pk": self.job_request.pk})
+        )
+        self.assertContains(detail_response, "Counter-offer message")
+        self.assertContains(detail_response, "Rejected")
+
+    def test_job_owner_cannot_change_already_decided_offer(self):
+        offer = self.create_offer()
+        offer.status = Offer.Status.ACCEPTED
+        offer.save(update_fields=["status", "updated_at"])
+        self.client.force_login(self.owner)
+
+        response = self.client.post(reverse("jobs:offer_decline", kwargs={"pk": offer.pk}))
+
+        self.assertEqual(response.status_code, 403)
+        offer.refresh_from_db()
+        self.assertEqual(offer.status, Offer.Status.ACCEPTED)
 
     def test_other_customer_cannot_accept_or_decline_received_offer(self):
         offer = self.create_offer()
