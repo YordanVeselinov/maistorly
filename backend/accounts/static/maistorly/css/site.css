@@ -318,6 +318,10 @@ dd {
     gap: var(--space-6);
 }
 
+.received-offers-list {
+    margin-top: var(--space-7);
+}
+
 .cluster {
     display: flex;
     flex-wrap: wrap;
