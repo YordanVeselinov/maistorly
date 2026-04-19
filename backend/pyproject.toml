@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "maistorly-backend"
+version = "0.1.0"
+description = "Django backend for the Maistorly service marketplace."
+authors = ["Maistorly"]
+packages = [
+    { include = "accounts" },
+    { include = "craftsmen" },
+    { include = "jobs" },
+    { include = "maistorly" },
+    { include = "reviews" },
+    { include = "services" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<4.0"
+asgiref = "==3.11.1"
+celery = "==5.5.3"
+cloudinary = "==1.44.1"
+django = "==6.0.2"
+django-cloudinary-storage = "==0.3.0"
+djangorestframework = "==3.16.1"
+python-dotenv = "==1.2.1"
+psycopg = "==3.3.3"
+redis = "==6.4.0"
+sqlparse = "==0.5.5"
+tzdata = "==2025.3"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
