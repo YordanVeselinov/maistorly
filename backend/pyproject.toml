@@ -1,8 +1,14 @@
-[tool.poetry]
+[project]
 name = "maistorly-backend"
 version = "0.1.0"
 description = "Django backend for the Maistorly service marketplace."
-authors = ["Maistorly"]
+requires-python = ">=3.12,<4.0"
+dynamic = ["dependencies"]
+authors = [
+    { name = "Maistorly" },
+]
+
+[tool.poetry]
 packages = [
     { include = "accounts" },
     { include = "craftsmen" },

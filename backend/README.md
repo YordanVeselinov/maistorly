@@ -18,14 +18,15 @@ Maistorly is a Django-based home repair marketplace where customers can post job
 - Redis
 - Django REST Framework
 - Celery
+- Poetry
 
 ## Local Setup
 
-1. Create and activate a virtual environment.
-2. Install dependencies:
+1. Install Poetry if it is not already available.
+2. Install dependencies from the lock file:
 
 ```bash
-pip install -r requirements.txt
+poetry install
 ```
 
 3. Copy `.env.example` to `.env` and update the values for your machine.
@@ -33,13 +34,13 @@ pip install -r requirements.txt
 5. Run migrations:
 
 ```bash
-python manage.py migrate
+poetry run python manage.py migrate
 ```
 
 6. Start the development server:
 
 ```bash
-python manage.py runserver
+poetry run python manage.py runserver
 ```
 
 ## Environment Variables
@@ -103,8 +104,8 @@ Start Redis locally before running Celery.
 ## Running Migrations
 
 ```bash
-python manage.py makemigrations
-python manage.py migrate
+poetry run python manage.py makemigrations
+poetry run python manage.py migrate
 ```
 
 ## Running Celery
@@ -112,7 +113,7 @@ python manage.py migrate
 Start a worker from the `backend` directory:
 
 ```bash
-celery -A maistorly worker --loglevel=info
+poetry run celery -A maistorly worker --loglevel=info
 ```
 
 For local development without Redis, you can temporarily set:
@@ -128,13 +129,13 @@ That makes tasks run synchronously in-process.
 Run the full project tests:
 
 ```bash
-python manage.py test
+poetry run python manage.py test
 ```
 
 Run selected apps:
 
 ```bash
-python manage.py test accounts jobs reviews craftsmen services
+poetry run python manage.py test accounts jobs reviews craftsmen services
 ```
 
 ## Static and Media Files
@@ -149,7 +150,7 @@ Uploaded media files are stored in Cloudinary. Static files remain local and are
 For deployment, collect static files with:
 
 ```bash
-python manage.py collectstatic
+poetry run python manage.py collectstatic
 ```
 
 ## API Endpoints
@@ -167,7 +168,7 @@ python manage.py collectstatic
 - Configure real `ALLOWED_HOSTS`
 - Use production PostgreSQL and Redis services
 - Use a real email backend instead of the console backend
-- Run `collectstatic`
+- Run `poetry run python manage.py collectstatic`
 - Run Celery worker processes separately from the web app
 - Serve static/media with your web server or storage provider
 
