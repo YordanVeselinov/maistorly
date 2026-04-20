@@ -50,6 +50,13 @@ Required and commonly used variables are documented in `.env.example`.
 - `SECRET_KEY`
 - `DEBUG`
 - `ALLOWED_HOSTS`
+- `CSRF_TRUSTED_ORIGINS`
+- `SECURE_SSL_REDIRECT`
+- `SESSION_COOKIE_SECURE`
+- `CSRF_COOKIE_SECURE`
+- `SECURE_HSTS_SECONDS`
+- `SECURE_HSTS_INCLUDE_SUBDOMAINS`
+- `SECURE_HSTS_PRELOAD`
 - `TIME_ZONE`
 - `DB_ENGINE`
 - `DB_NAME`
@@ -57,6 +64,8 @@ Required and commonly used variables are documented in `.env.example`.
 - `DB_PASSWORD`
 - `DB_HOST`
 - `DB_PORT`
+- `DB_SSLMODE`
+- `DB_CONN_MAX_AGE`
 - `EMAIL_BACKEND`
 - `DEFAULT_FROM_EMAIL`
 - `EMAIL_HOST`
@@ -150,7 +159,7 @@ Uploaded media files are stored in Cloudinary. Static files remain local and are
 For deployment, collect static files with:
 
 ```bash
-poetry run python manage.py collectstatic
+poetry run python manage.py collectstatic --noinput
 ```
 
 ## API Endpoints
@@ -161,15 +170,83 @@ poetry run python manage.py collectstatic
 - `GET /api/craftsmen/`
 - `GET /api/craftsmen/<id>/`
 
-## Deployment Notes
+## Azure App Service Deployment
 
-- Set `DEBUG=False`
-- Use a strong production `SECRET_KEY`
-- Configure real `ALLOWED_HOSTS`
-- Use production PostgreSQL and Redis services
-- Use a real email backend instead of the console backend
-- Run `poetry run python manage.py collectstatic`
-- Run Celery worker processes separately from the web app
-- Serve static/media with your web server or storage provider
+Target platform:
 
-This setup is intentionally minimal and suitable for exam submission, local demos, and later deployment hardening.
+- Azure App Service on Linux
+- Azure Database for PostgreSQL
+- Cloudinary for uploaded media
+- Gunicorn for WSGI
+- WhiteNoise for collected static files
+
+Keep Poetry as the package manager. The App Service build or deployment pipeline must install dependencies from `poetry.lock`.
+
+Example install command for a deployment pipeline:
+
+```bash
+poetry install --only main --no-root
+```
+
+### Required Azure App Settings
+
+Set these in Azure App Service Configuration. Do not commit production values to the repository.
+
+```env
+SECRET_KEY=<strong-production-secret>
+DEBUG=False
+ALLOWED_HOSTS=<app-name>.azurewebsites.net,<custom-domain>
+CSRF_TRUSTED_ORIGINS=https://<app-name>.azurewebsites.net,https://<custom-domain>
+SECURE_SSL_REDIRECT=False
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+SECURE_HSTS_SECONDS=0
+SECURE_HSTS_INCLUDE_SUBDOMAINS=False
+SECURE_HSTS_PRELOAD=False
+
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=<postgres-database>
+DB_USER=<postgres-user>
+DB_PASSWORD=<postgres-password>
+DB_HOST=<postgres-host>
+DB_PORT=5432
+DB_SSLMODE=require
+DB_CONN_MAX_AGE=60
+
+STATIC_URL=/static/
+STATIC_ROOT=staticfiles
+MEDIA_URL=/media/
+
+CLOUDINARY_CLOUD_NAME=<cloudinary-cloud-name>
+CLOUDINARY_API_KEY=<cloudinary-api-key>
+CLOUDINARY_API_SECRET=<cloudinary-api-secret>
+```
+
+Also configure production values for email, Redis, and Celery if those services are used by the deployed environment. For Azure build automation, set `SCM_DO_BUILD_DURING_DEPLOYMENT=true` when your deployment flow uses Oryx.
+
+Leave `SECURE_SSL_REDIRECT=False` when Azure App Service HTTPS Only is enabled. Set it to `True` only if Django should perform HTTPS redirects itself. Increase `SECURE_HSTS_SECONDS` only after the production domain is confirmed to serve HTTPS correctly.
+
+### Deployment Checklist
+
+- Install dependencies with Poetry from `poetry.lock`.
+- Run migrations after the database settings are configured:
+
+```bash
+poetry run python manage.py migrate
+```
+
+- Run collectstatic during build or deployment:
+
+```bash
+poetry run python manage.py collectstatic --noinput
+```
+
+- Static files are collected into `STATIC_ROOT` and served by WhiteNoise from the Django app.
+- Uploaded media files are stored in Cloudinary through `django-cloudinary-storage`; App Service local storage is not used for media.
+- Set the Azure App Service startup command:
+
+```bash
+poetry run gunicorn maistorly.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+```
+
+- Run Celery worker processes separately from the web App Service if asynchronous jobs are enabled.

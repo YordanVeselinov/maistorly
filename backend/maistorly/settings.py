@@ -35,7 +35,7 @@ def resolve_env_file():
 
 
 ENV_FILE = resolve_env_file()
-load_dotenv(dotenv_path=ENV_FILE, override=True)
+load_dotenv(dotenv_path=ENV_FILE, override=False)
 
 
 def get_cloudinary_env(name):
@@ -45,23 +45,40 @@ def get_cloudinary_env(name):
     return value.strip() or None
 
 
+def get_env_bool(name, default=False):
+    return os.getenv(name, str(default)).lower() in ("1", "true", "yes", "on")
+
+
+def get_env_list(name, default=()):
+    value = os.getenv(name)
+    if value is None:
+        return list(default)
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me")
+DEBUG = get_env_bool("DEBUG", False)
+
+SECRET_KEY = os.getenv("SECRET_KEY", "").strip()
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-change-me"
+    else:
+        raise ImproperlyConfigured("SECRET_KEY environment variable is required when DEBUG=False.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes", "on")
-
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in (
-        os.getenv("ALLOWED_HOSTS") or "127.0.0.1,localhost,[::1]"
-    ).split(",")
-    if host.strip()
-]
-
+ALLOWED_HOSTS = get_env_list("ALLOWED_HOSTS", ("127.0.0.1", "localhost", "[::1]"))
+CSRF_TRUSTED_ORIGINS = get_env_list("CSRF_TRUSTED_ORIGINS")
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = get_env_bool("SECURE_SSL_REDIRECT", False)
+SESSION_COOKIE_SECURE = get_env_bool("SESSION_COOKIE_SECURE", not DEBUG)
+CSRF_COOKIE_SECURE = get_env_bool("CSRF_COOKIE_SECURE", not DEBUG)
+SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = get_env_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)
+SECURE_HSTS_PRELOAD = get_env_bool("SECURE_HSTS_PRELOAD", False)
 
 # Application definition
 
@@ -104,6 +121,7 @@ LOGIN_URL = "accounts:login"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -136,6 +154,11 @@ WSGI_APPLICATION = 'maistorly.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+DATABASE_OPTIONS = {}
+DB_SSLMODE = os.getenv("DB_SSLMODE", "").strip()
+if DB_SSLMODE:
+    DATABASE_OPTIONS["sslmode"] = DB_SSLMODE
+
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
@@ -144,8 +167,11 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD", ""),
         "HOST": os.getenv("DB_HOST", "127.0.0.1"),
         "PORT": os.getenv("DB_PORT", "5432"),
+        "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60" if not DEBUG else "0")),
     }
 }
+if DATABASE_OPTIONS:
+    DATABASES["default"]["OPTIONS"] = DATABASE_OPTIONS
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -186,6 +212,17 @@ USE_TZ = True
 
 STATIC_URL = os.getenv("STATIC_URL", "/static/")
 STATIC_ROOT = BASE_DIR / os.getenv("STATIC_ROOT", "staticfiles")
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_USE_FINDERS = DEBUG
+STATICFILES_STORAGE_BACKEND = os.getenv(
+    "STATICFILES_STORAGE_BACKEND",
+    (
+        "django.contrib.staticfiles.storage.StaticFilesStorage"
+        if DEBUG
+        else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    ),
+)
+
 MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
 MEDIA_ROOT = BASE_DIR / os.getenv("MEDIA_ROOT", "media")
 
@@ -221,7 +258,7 @@ if CLOUDINARY_MISSING_ENV:
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            "BACKEND": STATICFILES_STORAGE_BACKEND,
         },
     }
 else:
@@ -244,7 +281,7 @@ else:
             "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
         },
         "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            "BACKEND": STATICFILES_STORAGE_BACKEND,
         },
     }
 
@@ -257,8 +294,8 @@ EMAIL_HOST = os.getenv("EMAIL_HOST", "127.0.0.1")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "1025"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False").lower() in ("1", "true", "yes", "on")
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() in ("1", "true", "yes", "on")
+EMAIL_USE_TLS = get_env_bool("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL = get_env_bool("EMAIL_USE_SSL", False)
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://127.0.0.1:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://127.0.0.1:6379/1")
@@ -266,4 +303,4 @@ CELERY_TASK_ALWAYS_EAGER = os.getenv(
     "CELERY_TASK_ALWAYS_EAGER",
     "True" if DEBUG else "False",
 ).lower() in ("1", "true", "yes", "on")
-CELERY_TASK_EAGER_PROPAGATES = os.getenv("CELERY_TASK_EAGER_PROPAGATES", "True").lower() in ("1", "true", "yes", "on")
+CELERY_TASK_EAGER_PROPAGATES = get_env_bool("CELERY_TASK_EAGER_PROPAGATES", True)
