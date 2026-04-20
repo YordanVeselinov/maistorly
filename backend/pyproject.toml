@@ -27,7 +27,7 @@ django = "==6.0.2"
 django-cloudinary-storage = "==0.3.0"
 djangorestframework = "==3.16.1"
 python-dotenv = "==1.2.1"
-psycopg = "==3.3.3"
+psycopg = {version = "3.3.3", extras = ["binary"]}
 redis = "==6.4.0"
 sqlparse = "==0.5.5"
 tzdata = "==2025.3"
