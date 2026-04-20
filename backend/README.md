@@ -243,10 +243,10 @@ poetry run python manage.py collectstatic --noinput
 
 - Static files are collected into `STATIC_ROOT` and served by WhiteNoise from the Django app.
 - Uploaded media files are stored in Cloudinary through `django-cloudinary-storage`; App Service local storage is not used for media.
-- Set the Azure App Service startup command:
+- Set the Azure App Service startup command. The WSGI entry point is `maistorly.wsgi:application`, and Gunicorn is included in the production dependencies.
 
 ```bash
-poetry run gunicorn maistorly.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+gunicorn maistorly.wsgi:application --bind 0.0.0.0:${PORT:-8000}
 ```
 
 - Run Celery worker processes separately from the web App Service if asynchronous jobs are enabled.

@@ -56,6 +56,15 @@ def get_env_list(name, default=()):
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def get_env_or_debug_default(name, debug_default):
+    value = os.getenv(name)
+    if value is not None and value.strip():
+        return value
+    if DEBUG:
+        return debug_default
+    raise ImproperlyConfigured(f"{name} environment variable is required when DEBUG=False.")
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -70,7 +79,13 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("SECRET_KEY environment variable is required when DEBUG=False.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-ALLOWED_HOSTS = get_env_list("ALLOWED_HOSTS", ("127.0.0.1", "localhost", "[::1]"))
+ALLOWED_HOSTS = get_env_list(
+    "ALLOWED_HOSTS",
+    ("127.0.0.1", "localhost", "[::1]") if DEBUG else (),
+)
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured("ALLOWED_HOSTS environment variable is required when DEBUG=False.")
+
 CSRF_TRUSTED_ORIGINS = get_env_list("CSRF_TRUSTED_ORIGINS")
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = get_env_bool("SECURE_SSL_REDIRECT", False)
@@ -162,10 +177,10 @@ if DB_SSLMODE:
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.getenv("DB_NAME", "maistorly_db"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+        "NAME": get_env_or_debug_default("DB_NAME", "maistorly_db"),
+        "USER": get_env_or_debug_default("DB_USER", "postgres"),
+        "PASSWORD": get_env_or_debug_default("DB_PASSWORD", ""),
+        "HOST": get_env_or_debug_default("DB_HOST", "127.0.0.1"),
         "PORT": os.getenv("DB_PORT", "5432"),
         "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60" if not DEBUG else "0")),
     }
@@ -214,13 +229,10 @@ STATIC_URL = os.getenv("STATIC_URL", "/static/")
 STATIC_ROOT = BASE_DIR / os.getenv("STATIC_ROOT", "staticfiles")
 WHITENOISE_AUTOREFRESH = DEBUG
 WHITENOISE_USE_FINDERS = DEBUG
-STATICFILES_STORAGE_BACKEND = os.getenv(
-    "STATICFILES_STORAGE_BACKEND",
-    (
-        "django.contrib.staticfiles.storage.StaticFilesStorage"
-        if DEBUG
-        else "whitenoise.storage.CompressedManifestStaticFilesStorage"
-    ),
+STATICFILES_STORAGE_BACKEND = os.getenv("STATICFILES_STORAGE_BACKEND", "").strip() or (
+    "django.contrib.staticfiles.storage.StaticFilesStorage"
+    if DEBUG
+    else "whitenoise.storage.CompressedManifestStaticFilesStorage"
 )
 
 MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
