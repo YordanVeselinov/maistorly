@@ -180,12 +180,12 @@ Target platform:
 - Gunicorn for WSGI
 - WhiteNoise for collected static files
 
-Keep Poetry as the package manager. The App Service build or deployment pipeline must install dependencies from `poetry.lock`.
+Keep Poetry as the package manager for local dependency management. The Azure App Service deployment uses Oryx build automation and installs runtime packages from `backend/requirements.txt`.
 
-Example install command for a deployment pipeline:
+Example dependency install command for a deployment pipeline that runs from the repository root:
 
 ```bash
-poetry install --only main --no-root
+pip install -r backend/requirements.txt
 ```
 
 ### Required Azure App Settings
@@ -217,28 +217,31 @@ STATIC_URL=/static/
 STATIC_ROOT=staticfiles
 MEDIA_URL=/media/
 
+SCM_DO_BUILD_DURING_DEPLOYMENT=true
+POST_BUILD_COMMAND=cd backend && python manage.py collectstatic --noinput
+
 CLOUDINARY_CLOUD_NAME=<cloudinary-cloud-name>
 CLOUDINARY_API_KEY=<cloudinary-api-key>
 CLOUDINARY_API_SECRET=<cloudinary-api-secret>
 ```
 
-Also configure production values for email, Redis, and Celery if those services are used by the deployed environment. For Azure build automation, set `SCM_DO_BUILD_DURING_DEPLOYMENT=true` when your deployment flow uses Oryx.
+Also configure production values for email, Redis, and Celery if those services are used by the deployed environment. `SCM_DO_BUILD_DURING_DEPLOYMENT=true` enables Oryx during deployment. `POST_BUILD_COMMAND` runs after dependencies are installed and must `cd backend` before running `collectstatic` because the Django project lives in the `backend/` directory.
 
 Leave `SECURE_SSL_REDIRECT=False` when Azure App Service HTTPS Only is enabled. Set it to `True` only if Django should perform HTTPS redirects itself. Increase `SECURE_HSTS_SECONDS` only after the production domain is confirmed to serve HTTPS correctly.
 
 ### Deployment Checklist
 
-- Install dependencies with Poetry from `poetry.lock`.
+- Keep `backend/requirements.txt` synchronized with Poetry dependencies so Azure installs the same runtime packages.
 - Run migrations after the database settings are configured:
 
 ```bash
-poetry run python manage.py migrate
+cd backend && python manage.py migrate
 ```
 
-- Run collectstatic during build or deployment:
+- Let Azure run collectstatic during Oryx deployment through `POST_BUILD_COMMAND`:
 
 ```bash
-poetry run python manage.py collectstatic --noinput
+cd backend && python manage.py collectstatic --noinput
 ```
 
 - Static files are collected into `STATIC_ROOT` and served by WhiteNoise from the Django app.
@@ -246,7 +249,7 @@ poetry run python manage.py collectstatic --noinput
 - Set the Azure App Service startup command. The WSGI entry point is `maistorly.wsgi:application`, and Gunicorn is included in the production dependencies.
 
 ```bash
-gunicorn maistorly.wsgi:application --bind 0.0.0.0:${PORT:-8000}
+gunicorn --chdir backend maistorly.wsgi:application --bind=0.0.0.0 --timeout 600
 ```
 
 - Run Celery worker processes separately from the web App Service if asynchronous jobs are enabled.

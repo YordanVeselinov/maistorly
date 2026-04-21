@@ -40,7 +40,7 @@ jobs:
           name: python-app
           path: |
             .
-            !antenv/
+            !backend/antenv/
 
       # 🚫 Opting Out of Oryx Build
       # If you prefer to disable the Oryx build process during deployment, follow these steps:
@@ -68,10 +68,16 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CA63710EABA04EA58EDC7F359F7EDB42 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0BE7E93787834A83B1390E3796FE9164 }}
 
+      - name: Configure Azure build settings
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'maristorly'
+          slot-name: 'Production'
+          app-settings-json: '[{"name":"SCM_DO_BUILD_DURING_DEPLOYMENT","value":"true","slotSetting":false},{"name":"POST_BUILD_COMMAND","value":"cd backend && python manage.py collectstatic --noinput","slotSetting":false}]'
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'maristorly'
           slot-name: 'Production'
-          
