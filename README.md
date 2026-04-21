@@ -1,112 +1,104 @@
-# Maistorly
+# 🛠️ Maistorly
 
-Maistorly is a web platform that connects clients with craftsmen for home services and repairs.
+Maistorly is a web platform that connects customers with craftsmen and service providers. Users can create job requests, receive offers, and leave reviews after completing work.
 
-The goal of the application is to provide a simple and reliable way for users to find professionals for tasks such as electrical work, plumbing, renovations, and more.
+---
+
+## 🌐 Live Demo
+
+👉 https://maristorly-fpdqa2bjbkeshcfu.polandcentral-01.azurewebsites.net
+
+⚠️ **Note:** The application is hosted on Azure (free tier), which may result in slower response times or initial loading delays. Despite this, all functionalities work correctly.
 
 ---
 
 ## 🚀 Features
 
-### 👤 Authentication
-- Custom user model
-- Email-based login
-- Registration and logout
-- Role-based access using Django Groups:
-  - Clients
-  - Craftsmen
-
----
-
-### 🧰 Job Requests
-- Users can create job requests
-- Each job contains:
-  - Title
-  - Description
-  - Budget range
-  - Preferred date
-  - Location
-- Users can:
-  - View all jobs
-  - View their own jobs
-  - Edit and delete their jobs
-
----
-
-### 🛠️ Offers System
-- Craftsmen can apply to jobs
-- Each offer includes:
-  - Message
-  - Proposed price
-  - Estimated time
-- Job owners can review offers
-
----
-
-### 👷 Craftsmen Profiles
-- Craftsmen can manage their profiles
-- Profiles include:
-  - Skills
-  - Location
-  - Description
-- Users can browse craftsmen
-
----
-
-### ⭐ Reviews
-- Clients can leave reviews after a job is completed
-- Includes rating and comment
-- One review per job
-
----
-
-### 🌐 Public & Private Access
-- Public pages for anonymous users
-- Private pages for authenticated users
-- Dynamic navigation based on authentication
-
----
-
-### 🔗 REST API
-- Built with Django REST Framework
-- Endpoints for:
-  - Jobs
-  - Craftsmen
-
----
-
-### ⚙️ Async Tasks
-- Celery used for background processing
-- Example:
-  - Sending notifications for new offers
+* 👤 User registration & authentication
+* 🧑‍🔧 Craftsman profiles with service listings
+* 📩 Job requests from customers
+* 💰 Offers system between users
+* ⭐ Reviews and ratings
+* 🖼️ Image upload (Cloudinary integration)
 
 ---
 
 ## 🧱 Tech Stack
 
-- Django
-- Django REST Framework
-- PostgreSQL
-- Bootstrap 5
-- Celery + Redis
-- Docker
+* **Backend:** Django 6 + Django REST Framework
+* **Database:** PostgreSQL (Azure Database)
+* **Task Queue:** Celery (optional)
+* **Storage:** Cloudinary
+* **Deployment:** Azure App Service (Linux)
+* **Server:** Gunicorn
 
 ---
 
-## 🗂️ Project Structure
-
-- accounts – authentication and users
-- services – categories and skills
-- craftsmen – craftsmen profiles
-- jobs – job requests and offers
-- reviews – reviews and ratings
-
----
-
-## ⚙️ Setup
-
-### 1. Clone repository
+## ⚙️ Setup (Local Development)
 
 ```bash
-git clone <your-repo-url>
-cd maistorly
+git clone https://github.com/YordanVeselinov/maistorly.git
+cd maistorly/backend
+
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+
+pip install -r requirements.txt
+```
+
+Create a `.env` file:
+
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key
+
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=maistorly_db
+DB_USER=postgres
+DB_PASSWORD=your-password
+DB_HOST=127.0.0.1
+DB_PORT=5432
+
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+```
+
+Run:
+
+```bash
+python manage.py migrate
+python manage.py runserver
+```
+
+---
+
+## ☁️ Deployment Notes (Azure)
+
+* Hosted on **Azure App Service (Linux)**
+* Uses **Azure PostgreSQL Flexible Server**
+* Static files handled with **WhiteNoise**
+* Environment variables configured in Azure
+
+---
+
+## ⚠️ Known Limitations
+
+* The app may load slowly due to Azure free-tier limitations
+* Cold starts can delay the first request
+* Celery is optional and not running in production
+
+---
+
+## 📌 Future Improvements
+
+* Add caching (Redis)
+* Improve performance
+* Add async tasks in production
+* Better UI/UX polish
+
+---
+
+## 👨‍💻 Author
+
+**Yordan Veselinov**
